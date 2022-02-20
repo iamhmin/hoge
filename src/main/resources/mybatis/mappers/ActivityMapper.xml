@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.ActivityMapper">
+
+	<!-- 성하민 타임테이블 시간 지난거 closed로 변경-->
+	<update id="closeActivityTime">
+		update
+			tb_final_activity_times 
+		set 
+			activity_closed = 'Y' 
+		where 
+			activity_time &lt;= sysdate
+	</update>
+
+	<!-- 염주환 -->
+	<select id="getActivityByNo" parameterType="int" resultType="com.hoge.vo.activities.Activity">
+		select
+			activity_no as no,
+			host_no as hostNo,
+			maximum_number as maximumNumber,
+			price_per_person as pricePerPerson,
+			activity_name as name,
+			activity_registered_date as registeredDate,
+			average_star as star,
+			activity_address as address,
+			activity_region_depth1 as regionDepth1,
+			activity_region_depth2 as regionDepth2,
+			activity_region_depth3 as regionDepth3,
+			activity_xce as xce,
+			activity_yce as yce,
+			activity_intro_title as introTitle,
+			activity_intro_content as introContent
+		from
+			tb_final_activities
+		where
+			activity_no = #{value}
+	</select>
+	
+	<!-- 염주환 -->
+	<select id="getActivityTimeTableByActivityNo" parameterType="int" resultType="com.hoge.vo.activities.ActivityTimeTable">
+		select 
+			activity_time_no as no,
+			activity_no as activityNo,
+			activity_time as time, 
+			activity_booked_number as soFarBookedNumberOfPeople, 
+			activity_closed as closed
+		from tb_final_activity_times
+		where activity_no = #{value}
+		and activity_closed='N'
+	</select>
+	
+	<!-- 염주환 -->
+	<select id="getActivityBookingNoSeq" resultType="int">
+		select final_activity_booking_no_seq.nextval
+		from dual
+	</select>
+	
+	<!-- 염주환 -->
+	<insert id="insertActivityBooking">
+		insert into 
+			tb_final_activity_bookings
+			(activity_booking_no, user_no, activity_time_no, number_of_people, activity_payment,
+			activity_tax_included_price, activity_used_pnt, activity_paid_price, activity_booking_name, activity_booking_tel, tid)
+		values 
+			(#{activityBookingNo}, #{activityReserveForm.userNo}, #{activityReserveForm.activityTimeNo}, #{activityReserveForm.numberOfPeople}, 
+			#{activityReserveForm.payment}, #{activityReserveForm.taxIncludedPrice}, #{activityReserveForm.usedPnt}, #{activityReserveForm.paidPrice},
+			#{activityReserveForm.bookingName}, #{activityReserveForm.bookingTel}, #{activityReserveForm.tid})
+	</insert>
+	
+	<!-- 염주환 -->
+	<insert id="updateActivityTimes" parameterType="com.hoge.form.ActivityReserveForm">
+		update 
+			tb_final_activity_times 
+		set 
+			activity_booked_number = (select activity_booked_number from tb_final_activity_times where activity_time_no = ${activityReserveForm.activityTimeNo}) + ${activityReserveForm.numberOfPeople}
+		where 
+			activity_time_no = ${activityReserveForm.activityTimeNo}
+	</insert>
+
+	<!-- 염주환 -->
+	<update id="updateActivityTimesClosed" parameterType="com.hoge.form.ActivityReserveForm">
+		update
+			tb_final_activity_times 
+		set 
+			activity_closed = 'Y' 
+		where 
+			activity_time_no = ${activityReserveForm.activityTimeNo}
+			and activity_booked_number = (select maximum_number from tb_final_activities where activity_no = ${activityReserveForm.activityNo})
+	</update>
+	
+	<!-- 염주환 -->
+	<insert id="insertTransaction">
+		<selectKey keyProperty="transactionNo" resultType="int" order="BEFORE">
+			select final_transaction_no_seq.nextval
+			from dual
+		</selectKey>
+		insert into tb_final_transactions
+			(transaction_no, transaction_type, transaction_amount, activity_booking_no, accumulated_money)
+		values
+			(#{transactionNo}, 1, #{transaction.amount}, #{transaction.activityBookingNo}, #{transaction.accumulatedMoney})
+	</insert>
+	
+	<!-- 염주환 -->
+	<select id="getActivityBooking" parameterType="int" resultType="com.hoge.dto.ActivityBookingDto">
+		select
+			(select activity_time from tb_final_activity_times where activity_time_no = a.activity_time_no) activityTime,
+			(select activity_no from tb_final_activity_times where activity_time_no = a.activity_time_no) activityNo,
+			number_of_people numberOfPeople,
+			activity_paid_price paidPrice,
+			booking_made_date bookingMadeDate,
+			activity_booking_no no
+		from 
+			(select 
+				rownum,
+				activity_time_no,
+				number_of_people,
+				activity_paid_price,
+				booking_made_date,
+				activity_booking_no
+			from 
+				tb_final_activity_bookings
+			where
+				user_no = #{value}
+			order by
+				booking_made_date desc) a
+		where rownum=1
+	</select>
+	
+	<!-- 염주환 -->
+	<select id="getActivityImageList" parameterType="int" resultType="com.hoge.vo.activities.ActivityImage">
+		select
+		    activity_no as activityNo,
+		    activity_image as image
+		from
+		    tb_final_activity_images
+		where 
+			activity_no = #{value}
+	</select>
+	
+	
+	
+	
+	<!-- 유상효 타임테이블 등록 -->
+	<insert id="addTime" parameterType="com.hoge.form.ActTimeForm">
+		insert into tb_final_activity_times
+		(
+		activity_time_no,
+		activity_no,
+		activity_time
+		)
+		values
+			(
+			final_activity_time_no_seq.nextval,
+			#{activityNo},
+			TO_DATE(#{inputTime}, 'YYYY-MM-DD HH24:MI:SS')
+			)
+	</insert>
+	
+	<!-- 유상효 타임테이블 리스트 -->
+	<select id="getTimeTableByActNo" parameterType="int" resultType="com.hoge.vo.activities.ActivityTimeTable">
+		select
+			activity_time_no as no,
+			activity_time as time,
+			activity_booked_number as soFarBookedNumberOfPeople,
+			activity_closed as closed
+		from
+			tb_final_activity_times
+		where
+			activity_no = #{value}
+		order by activity_time asc
+	</select>
+	<select id="getTimeTableByActNoAndStatusN" parameterType="int" resultType="com.hoge.vo.activities.ActivityTimeTable">
+		select
+			activity_time_no as no,
+			activity_time as time,
+			activity_booked_number as soFarBookedNumberOfPeople,
+			activity_closed as closed
+		from
+			tb_final_activity_times
+		where
+			activity_no = #{value}
+		and activity_closed = 'N'
+		order by activity_time asc
+	</select>
+	<select id="getTimeTableByActNoAndStatusY" parameterType="int" resultType="com.hoge.vo.activities.ActivityTimeTable">
+		select
+			activity_time_no as no,
+			activity_time as time,
+			activity_booked_number as soFarBookedNumberOfPeople,
+			activity_closed as closed
+		from
+			tb_final_activity_times
+		where
+			activity_no = #{value}
+		and activity_closed = 'Y'
+		order by activity_time asc
+	</select>
+	<select id="getTimeTableByTimeNo" parameterType="int" resultType="com.hoge.vo.activities.ActivityTimeTable">
+		select
+			activity_time_no as no,
+			activity_time as time,
+			activity_booked_number as soFarBookedNumberOfPeople,
+			activity_closed as closed
+		from
+			tb_final_activity_times
+		where
+			activity_time_no = #{value}
+	</select>
+	
+	<!-- 유상효 타임테이블번호로 타임테이블 수정하기 -->
+	<update id="modifyTimeTable" parameterType="com.hoge.form.ActTimeForm">
+		update tb_final_activity_times
+		set
+			activity_time = TO_DATE(#{inputTime}, 'YYYY-MM-DD HH24:MI:SS')
+		where
+			activity_time_no = #{no}
+	</update>
+	
+	<!-- 유상효 체험번호로 체험정보 조회하기-->
+	<select id="getActDetailByActNo" parameterType="int" resultType="com.hoge.dto.ActMainDto">
+		select
+			h.host_no as hostNo,
+			h.hosting_type as hostingType,
+			h.host_name as hostName,
+			h.host_tel as tel,
+			h.account_holder_name as accountHolderName,
+			h.bank_name as bankName,
+			h.account_number as accountNumber,
+			h.host_main_image as mainImage,
+			a.activity_no as actNo,
+			a.activity_name as actName,
+			a.activity_intro_title as actIntroTitle,
+			a.activity_intro_content as actIntroContent,
+			a.maximum_number as actMaximumNumber,
+			a.price_per_person as actPricePerPerson,
+			a.activity_address as actAddress,
+			a.activity_region_depth1 as dept1,
+			a.activity_region_depth2 as dept2
+		from
+			tb_final_activities a, tb_final_hosts h
+		where
+			a.host_no = h.host_no
+		and a.activity_no = #{value}
+	</select>
+	
+	<!--  유상효 accNo로 info type1 가져오기 -->
+	<select id="getActInfoType1ByActNo" parameterType="int" resultType="com.hoge.dto.ActMainDto">
+		select 
+			a.info_title as infoTitle1,
+			b.info_content as infoContent1
+		from
+			tb_final_activity_etc_info a, tb_final_activity_etc_info_detail b
+		where
+			activity_no = #{value}
+		and a.info_no = b.info_no
+		and a.info_type = 1
+	</select>
+	<select id="getActInfoType2ByActNo" parameterType="int" resultType="com.hoge.dto.ActMainDto">
+		select 
+			a.info_title as infoTitle2,
+			b.info_content as infoContent2
+		from
+			tb_final_activity_etc_info a, tb_final_activity_etc_info_detail b
+		where
+			activity_no = #{value}
+		and a.info_no = b.info_no
+		and a.info_type = 2
+	</select>
+	
+     <!--  유상효 accNo로 info type2 가져오기 -->
+	<select id="getActInfoType3ByActNo" parameterType="int" resultType="com.hoge.dto.ActMainDto">
+		select 
+			a.info_title as infoTitle3,
+			b.info_content as infoContent3
+		from
+			tb_final_activity_etc_info a, tb_final_activity_etc_info_detail b
+		where
+			activity_no = #{value}
+		and a.info_no = b.info_no
+		and a.info_type = 3
+	</select>
+	
+	
+	
+	
+	<!--
+	//성하민 관리자페이지에서 체험 개수 가져오기
+	int getActivityCountForAdmin(Criteria criteria); -->
+	<select id="getActivityCountForAdmin" parameterType="com.hoge.form.Criteria" resultType="int">
+		select 
+			count(*)
+		from  TB_FINAL_ACTIVITIES a, tb_final_hosts h
+		 where
+        	a.host_no = h.host_no
+        and
+         	h.STATUS = #{hostStatus}
+         	<if test="grade != null and grade != '' ">
+				and h.GRADE_NAME = #{grade} 
+			</if>
+         	<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '회원번호'">
+						and h.HOST_USER_NO = #{value} 
+					</when>
+					<when test="opt == '호스트번호'">
+						and h.HOST_NO = #{value}
+					</when>
+					<when test="opt == '체험이름'">
+						and a.activity_name like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '주소'">
+						and a.activity_address like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>
+	</select>
+	
+		<!--  
+	//성하민 관리자페이지에서 체험정보 가져오기
+	List<AdminActivityListDto> getActivityListForAdmin(Criteria criteria); -->
+	<select id="getActivityListForAdmin" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.AdminActivityListDto">
+		select 
+			no, 
+			name, 
+			address,
+			registeredDate,
+			star,
+			hostNo,
+			hostName,
+			userNo,
+			hostTel,
+			hostStatus,
+			gradeName,
+			mainImage,
+			accumulatedMoney,
+			statusDetail,
+			request
+		from (select
+			a.ACTIVITY_NO as no, 
+			a.ACTIVITY_NAME as name, 
+			a.ACTIVITY_ADDRESS as address,
+			a.ACTIVITY_REGISTERED_DATE as registeredDate,
+			a.AVERAGE_STAR as star,
+			h.STATUS_DETAIL as statusDetail,
+			h.request as request,
+			h.host_no as hostNo,
+			h.host_name as hostName,
+			h.host_user_no as userNo,
+			h.host_tel as hostTel,
+			h.status as hostStatus,
+			h.grade_name as gradeName,
+			h.host_main_image as mainImage,
+			h.ACCUMULATED_MONEY as accumulatedMoney,
+			row_number() over (order by a.ACTIVITY_REGISTERED_DATE desc) rn
+		from
+            TB_FINAL_ACTIVITIES a, tb_final_hosts h
+        where
+        	a.host_no = h.host_no
+        and
+         	h.STATUS = #{hostStatus}
+         	<if test="grade != null and grade != '' ">
+				and h.GRADE_NAME = #{grade} 
+			</if>
+         	<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '회원번호'">
+						and h.HOST_USER_NO = #{value} 
+					</when>
+					<when test="opt == '호스트번호'">
+						and h.HOST_NO = #{value}
+					</when>
+					<when test="opt == '체험이름'">
+						and a.activity_name like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '주소'">
+						and a.activity_address like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>
+	)
+		where rn between #{beginIndex} and #{endIndex}
+	</select> 
+
+	<!-- 염주환 -->
+	<select id="getActivityListDto" resultType="com.hoge.dto.ActivityListDto">
+		select *
+		from (
+		    select 
+		        row_number() over (order by a.activity_no) rn,
+		        a.activity_no as no,
+		        a.maximum_number - t.booked_number as availableNumber,
+		        a.price_per_person as pricePerPerson,
+		        a.activity_name as name,
+		        a.average_star as star,
+		        a.activity_region_depth1 as regionDepth1,
+		        a.activity_region_depth2 as regionDepth2,
+		        a.activity_intro_title as introTitle,
+		        a.activity_xce as xce,
+		        a.activity_yce as yce
+		    from 
+		        tb_final_activities a,
+		        (select activity_no, min(activity_booked_number) booked_number
+		        from tb_final_activity_times
+		        where activity_closed = 'N'
+		        and activity_time > sysdate
+		        <if test="mapArea.checkIn != ''"> 
+		        and TO_CHAR(activity_time, 'YYYYMMDD') = #{mapArea.checkIn}
+		        </if>
+		        group by activity_no) t
+		    where 
+		        a.activity_no = t.activity_no
+		        and a.activity_xce between #{mapArea.swLat} and #{mapArea.neLat}
+		        and a.activity_yce between #{mapArea.swLng} and #{mapArea.neLng}
+		    )
+		where rn between #{criteria.beginIndex} and #{criteria.endIndex}
+	</select>
+
+	<select id="getActivitiesTotalRows" parameterType="com.hoge.dto.MapArea" resultType="int">
+		select 
+			count(*)
+		from (
+		    select 
+		        a.activity_no as no
+		    from 
+		        tb_final_activities a,
+		        (select activity_no
+		        from tb_final_activity_times
+		        where activity_closed = 'N'
+		        and activity_time > sysdate
+		        <if test="checkIn != ''"> 
+		        and TO_CHAR(activity_time, 'YYYYMMDD') = #{checkIn}
+		        </if>
+		        group by activity_no) t
+		    where 
+		        a.activity_no = t.activity_no
+		        and a.activity_xce between #{swLat} and #{neLat}
+                and a.activity_yce between #{swLng} and #{neLng}
+		    )
+	</select>
+	
+	
+	<!--//성하민 호스트페이지 메인에서 최근 3일 예약건수 가져오기
+	int getRecentBookingCountByActivityNo(int no);
+	 -->
+	 <select id="getRecentBookingCountByActivityNo" parameterType="int" resultType="int">
+		select count(*)
+			from TB_FINAL_ACTIVITY_BOOKINGS bk, TB_FINAL_ACTIVITY_TIMES t
+			where BOOKING_MADE_DATE &gt;= trunc(sysdate-2)
+			and t.ACTIVITY_NO = #{no}
+			and t.ACTIVITY_TIME_NO = bk.ACTIVITY_TIME_NO
+	</select>
+	
+	<!-- 	//성하민 호스트페이지 메인에서 최근 3일 예약데이터 가져오기
+	List<ActivityBookingHostDto> getRecentBookingListByActivityNo(Criteria criteria); 
+	
+	 -->
+	 <select id="getRecentBookingListByActivityNo" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.ActivityBookingHostDto">
+	 select 
+		no,
+		activityTimeNo,
+		userNo,
+		activityTime,
+		status,
+		bookingMadeDate,
+		 canceledDate,
+		cancelReason,
+		participantName,
+		 participantTel,
+		numberOfPeople
+		from (select
+			bk.ACTIVITY_BOOKING_NO as no,
+			bk.ACTIVITY_TIME_NO as activityTimeNo,
+			bk.USER_NO as userNo,
+			t.ACTIVITY_TIME as activityTime,
+			bk.ACTIVITY_BOOKING_STATUS as status,
+			bk.BOOKING_MADE_DATE as bookingMadeDate,
+			bk.ACTIVITY_CANCELED_DATE as canceledDate,
+			bk.ACTIVITY_CANCEL_REASON as cancelReason,
+			bk.ACTIVITY_BOOKING_NAME as participantName,
+			bk.ACTIVITY_BOOKING_TEL as participantTel,
+			bk.NUMBER_OF_PEOPLE as numberOfPeople,
+			row_number() over (order by bk.BOOKING_MADE_DATE desc) rn
+	from TB_FINAL_ACTIVITY_BOOKINGS bk, TB_FINAL_ACTIVITY_TIMES t
+			where BOOKING_MADE_DATE &gt;= trunc(sysdate-2)
+			and t.ACTIVITY_NO = #{no}
+			and t.ACTIVITY_TIME_NO = bk.ACTIVITY_TIME_NO
+	)
+		where rn between #{beginIndex} and #{endIndex}
+	</select>
+	
+	 
+	 <!-- //성하민 호스트페이지 메인에서 오늘 예약건수 가져오기
+	int getTodayReviewCountByActivityNo(int no);
+	 -->
+	<select id="getTodayBookingCountByActivityNo" parameterType="int" resultType="int">
+		select count(*)
+			from TB_FINAL_ACTIVITY_BOOKINGS bk, TB_FINAL_ACTIVITY_TIMES t
+			where BOOKING_MADE_DATE &gt;= trunc(sysdate)
+			and t.ACTIVITY_NO = #{no}
+			and t.ACTIVITY_TIME_NO = bk.ACTIVITY_TIME_NO
+	</select>
+	
+	
+	<!-- 성하민 
+		void updateActivityBookingStatusByBookingNo(int no);
+	-->
+	<update id="updateActivityBookingStatusByBookingNo" parameterType="int">
+		update TB_FINAL_ACTIVITY_BOOKINGS
+		<set>
+				ACTIVITY_BOOKING_STATUS = 0
+		</set>
+		where ACTIVITY_BOOKING_NO = #{no}
+	</update>
+	
+	<!--  성하민 체크아웃 시간 지나면서 예약상태인 예약정보 가져오기
+		ActivityBookingBatchDto getActivityBookingBatchDto();-->
+	<select id="getActivityBookingBatchDto" resultType="com.hoge.dto.ActivityBookingBatchDto">
+	select b.ACTIVITY_BOOKING_NO as activityBookingNo,
+		    b.USER_NO as userNo,
+		    t.ACTIVITY_TIME as activityTime,
+		    b.ACTIVITY_BOOKING_STATUS as status,
+		    b.ACTIVITY_TIME_NO as activityTimeNo,
+		    b.ACTIVITY_TAX_INCLUDED_PRICE as taxIncludedPrice,
+		    b.ACTIVITY_PAID_PRICE as paidPrice,
+		    a.ACTIVITY_NO as activityNo,
+		    h.host_no as hostNo,
+		    h.grade_name as GradeName,
+		    g.commission_rate as commissionRate
+		from 
+			TB_FINAL_ACTIVITY_BOOKINGS b, tb_final_hosts h, TB_FINAL_ACTIVITY_TIMES t, TB_FINAL_ACTIVITIES a, tb_final_grades g
+		WHERE t.ACTIVITY_TIME &lt; SYSDATE
+		and b.ACTIVITY_BOOKING_STATUS = 1
+		and b.ACTIVITY_TIME_NO = t.ACTIVITY_TIME_NO
+		and t.ACTIVITY_NO = a.ACTIVITY_NO
+		and a.host_no = h.host_no
+		and h.grade_name = g.grade_name
+	</select>
+	
+	
+	
+	
+	
+	
+	
+</mapper>

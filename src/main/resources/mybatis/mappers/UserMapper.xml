@@ -1,0 +1,412 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.UserMapper">
+	
+	<!-- 이승준 테스트용
+		List<User> getAllUsers();
+	 -->
+	 <select id="getAllUsers" resultType="com.hoge.vo.other.User">
+	 	select
+	 		user_no as no,
+	 		user_id as id,
+	 		user_is_host as isHost,
+	 		user_name as name,
+	 		user_pwd as pwd,
+	 		user_email as email,
+	 		user_tel as tel,
+	 		user_registered_date as registeredDate,
+	 		user_deleted as deleted,
+	 		user_pnt as pnt,
+	 		user_image as image,
+	 		user_gender as gender,
+	 		user_reported_count as reportedCount
+	 	from
+	 		tb_final_users
+	 	order by
+	 		user_no desc
+	 </select>
+	 
+	 <!-- 이승준 
+		User getUserByNo(int no);
+	 -->
+	 <select id="getUserByNo" resultType="com.hoge.vo.other.User" parameterType="int">
+	 	select
+	 		user_no as no,
+	 		user_id as id,
+	 		user_is_host as isHost,
+	 		user_name as name,
+	 		user_pwd as pwd,
+	 		user_email as email,
+	 		user_tel as tel,
+	 		user_registered_date as registeredDate,
+	 		user_deleted as deleted,
+	 		user_pnt as pnt,
+	 		user_image as image,
+	 		user_gender as gender,
+	 		user_reported_count as reportedCount
+	 	from
+	 		tb_final_users
+		where 
+			user_no = #{value}
+	 </select>
+	 
+	 <!-- 이승준 
+		User getUserById(String id);
+	 -->
+	 <select id="getUserById" resultType="com.hoge.vo.other.User" parameterType="string">
+	 	select
+	 		user_no as no,
+	 		user_id as id,
+	 		user_is_host as isHost,
+	 		user_name as name,
+	 		user_pwd as pwd,
+	 		user_email as email,
+	 		user_tel as tel,
+	 		user_registered_date as registeredDate,
+	 		user_deleted as deleted,
+	 		user_pnt as pnt,
+	 		user_image as image,
+	 		user_gender as gender,
+	 		user_reported_count as reportedCount
+	 	from
+	 		tb_final_users
+		where 
+			user_id = #{value}
+	 </select>
+	 
+	<!-- 이승준 
+		User getUserByEmail(String email);
+	 -->
+	 <select id="getUserByEmail" resultType="com.hoge.vo.other.User" parameterType="string">
+	 	select
+	 		user_no as no,
+	 		user_id as id,
+	 		user_is_host as isHost,
+	 		user_name as name,
+	 		user_pwd as pwd,
+	 		user_email as email,
+	 		user_tel as tel,
+	 		user_registered_date as registeredDate,
+	 		user_deleted as deleted,
+	 		user_pnt as pnt,
+	 		user_image as image,
+	 		user_gender as gender,
+	 		user_reported_count as reportedCount
+	 	from
+	 		tb_final_users
+		where 
+			user_email = #{value}
+	 </select>
+	 
+	 <!-- 이승준 
+		void insertUser();
+	 -->
+	<insert id="insertUser" parameterType="com.hoge.vo.other.User">
+		insert into tb_final_users
+			(user_no, user_id, user_name, user_pwd, user_tel, user_email, user_gender)
+		values
+			(final_user_no_seq.NEXTVAL, #{id}, #{name}, #{pwd}, #{tel}, #{email}, #{gender})
+	</insert>
+	
+	<!-- 이승준 
+		User updateUser(User user);
+	 -->
+	<update id="updateUser" parameterType="com.hoge.vo.other.User">
+		update 
+			tb_final_users
+		<set>
+		 		user_is_host = #{isHost},
+		 		user_name = #{name},
+		 		user_pwd = #{pwd},
+		 		user_email = #{email},
+		 		user_tel = #{tel},
+	 			user_deleted = #{deleted},
+	 			user_pnt = #{pnt},
+	 		<if test="image != null">
+	 			user_image = #{image},
+	 		</if>
+	 			user_gender = #{gender},
+	 			user_reported_count = #{reportedCount},
+	 			USER_UPDATED_DATE = SYSDATE
+	 	</set>
+		where
+			user_no = #{no}
+	</update>
+	
+	<!-- 성하민 void insertUserKaKao(User user); -->
+	 <insert id="insertUserKaKao" parameterType="com.hoge.dto.KakaoUserDto">
+		insert into tb_final_users
+			(user_no, user_id, user_name, user_email, user_gender)
+		values
+			(final_user_no_seq.NEXTVAL, #{id}, #{name}, #{email}, #{gender})
+	</insert>
+	
+	<!-- 이승준 
+		int userCheckByid(String id);
+	 -->
+	<select id="userCheckByid" parameterType="string" resultType="int">
+		select 
+			count(*) 
+		from 
+			tb_final_users 
+		where 
+			user_id = #{value}
+	</select>
+	
+	 <!-- 성하민
+		int getUsersTotalRows(CriteriaAdminUser CAU);
+	 -->
+	 <select id="getUsersTotalRows" parameterType="com.hoge.form.CriteriaAdminUser" resultType="int">
+		select count(*)
+		from tb_final_users
+		where user_deleted = #{deleted}
+			<if test="opt != null and value != null">
+				<choose>
+					<when test="opt == '이름'">
+						and user_name like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '전화번호'">
+						and user_tel like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '아이디'">
+						and user_id like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '이메일'">
+						and user_email like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>
+	</select>
+	
+	<!-- 성하민
+		List<User> searchUsers(CriteriaAdminUser CAU);
+	 -->
+	<select id="searchUsers" parameterType="com.hoge.form.CriteriaAdminUser" resultType="com.hoge.vo.other.User">
+		select 	
+			user_no as no,
+	 		user_id as id,
+	 		user_is_host as isHost,
+	 		user_name as name,
+	 		user_pwd as pwd,
+	 		user_email as email,
+	 		user_tel as tel,
+	 		user_registered_date as registeredDate,
+	 		user_deleted as deleted,
+	 		user_pnt as pnt,
+	 		user_image as image,
+	 		user_gender as gender,
+	 		user_reported_count as reportedCount
+		from (
+			select 	
+				user_no,
+	 			user_id,
+	 			user_is_host,
+	 			user_name,
+	 			user_pwd,
+	 			user_email,
+	 			user_tel,
+	 			user_registered_date,
+	 			user_deleted,
+	 			user_pnt,
+		 		user_image,
+		 		user_gender,
+	 			user_reported_count, 
+	 			row_number() over (order by user_no desc) rn
+			from tb_final_users
+			where user_deleted = #{deleted}
+			<if test="opt != null and value != null">
+				<choose>
+					<when test="opt == '이름'">
+						and user_name like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '전화번호'">
+						and user_tel like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '아이디'">
+						and user_id like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '이메일'">
+						and user_email like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>		
+		)
+		where rn between #{beginIndex} and #{endIndex}
+	</select> 
+	
+	<!-- 이승준
+		List<UserRevInfoDto> getMyRevListByNo(int no);
+	 -->
+	<select id="getMyRevListByNo" resultType="com.hoge.dto.UserRevInfoDto" parameterType="int">
+		select 
+			bookings.room_booking_status as roomBookingStatus,
+			bookings.room_booking_no as roomBookingNo,
+			accommos.accommo_no as accommoNo,
+			accommos.accommo_name as accommoName,
+            rooms.room_no as roomNo,
+			rooms.room_name as roomName,
+			accommos.accommo_region_depth1 as accommoRegionDepth1,
+			accommos.accommo_region_depth2 as accommoRegionDepth2,
+			bookings.check_in_date as checkInDate,
+			bookings.check_out_date as checkOutDate,
+			bookings.room_tax_included_price as roomTaxIncludedPrice
+		from 
+			tb_final_room_bookings bookings, tb_final_rooms rooms, tb_final_accommodations accommos 
+		where 
+			rooms.accommo_no = accommos.accommo_no
+		and 
+			rooms.room_no = bookings.room_no
+		and 
+			bookings.user_no = #{value}
+		order by 
+			bookings.check_in_date
+	</select>
+	
+	<!-- 이승준
+		UserRevInfoDto getRevInfoByBookingNo(int roomBookingNo);
+	 -->
+	<select id="getRevInfoByBookingNo" resultType="com.hoge.dto.UserRevInfoDto" parameterType="int">
+		select
+			bookings.user_no as userNo,
+			bookings.room_booking_name as roomUserName,
+			bookings.room_booking_tel as roomUserTel,
+			bookings.room_extra_people as extraPeople,
+			bookings.room_booking_no as roomBookingNo,
+            bookings.room_booking_status as roomBookingStatus,
+			accommos.accommo_no as accommoNo,
+			accommos.accommo_name as accommoName,
+            rooms.room_no as roomNo,
+			rooms.room_name as roomName,
+			accommos.accommo_region_depth1 as accommoRegionDepth1,
+			accommos.accommo_region_depth2 as accommoRegionDepth2,
+			bookings.check_in_date as checkInDate,
+			bookings.check_out_date as checkOutDate,
+			bookings.booking_made_date as bookingMadeDate,
+			bookings.room_canceled_date as canceledDate,
+			bookings.room_cancel_reason as cancelReason,
+			bookings.room_payment as payment,
+			bookings.room_tax_included_price as roomTaxIncludedPrice,
+			bookings.room_used_pnt as usedPnt,
+			bookings.room_paid_price as paidPrice
+		from 
+			tb_final_room_bookings bookings, tb_final_rooms rooms, tb_final_accommodations accommos
+		where 
+			rooms.accommo_no = accommos.accommo_no
+		and 
+			rooms.room_no = bookings.room_no
+        and 
+        	room_booking_no = #{roomBookingNo}
+	</select>
+	
+	<!-- 이승준
+		List<UserRevInfoDto> getMyTourListByNo(int no);
+	 -->
+	<select id="getMyTourListByNo" resultType="com.hoge.dto.UserRevInfoDto" parameterType="int">
+		select 
+			bookings.room_booking_status as roomBookingStatus,
+			bookings.room_booking_no as roomBookingNo,
+			accommos.accommo_no as accommoNo,
+			accommos.accommo_name as accommoName,
+			rooms.room_name as roomName,
+			rooms.room_no as roomNo,
+			accommos.accommo_region_depth1 as accommoRegionDepth1,
+			accommos.accommo_region_depth2 as accommoRegionDepth2,
+			bookings.check_in_date as checkInDate,
+			bookings.check_out_date as checkOutDate,
+			bookings.room_tax_included_price as roomTaxIncludedPrice,
+			bookings.user_no as no
+		from 
+			tb_final_room_bookings bookings, tb_final_rooms rooms, tb_final_accommodations accommos 
+		where 
+			rooms.accommo_no = accommos.accommo_no
+		and 
+			rooms.room_no = bookings.room_no
+		and 
+			bookings.user_no = #{value}
+		and 
+			bookings.room_booking_status = 0
+		order by 
+			bookings.check_in_date
+	</select>
+	
+	<!-- 이승준
+		List<AccommoListDto> getMyLoveListByNo(int userNo);
+	 -->
+	<select id="getMyLoveListByNo" resultType="com.hoge.vo.other.Wish" parameterType="int">
+		select 
+			user_no as userNo, accommo_no as accommoNo, activity_no as activityNo
+		from 
+			tb_final_wishes
+		where 
+			user_no = #{value}
+		and 
+			accommo_no is not null
+	</select>
+	
+	<!-- 이승준
+		AccommoListDto getAccommodationByNo(int accommoNo);
+	 -->
+	<select id="getAccommodationByNo" resultType="com.hoge.dto.AccommoListDto" parameterType="int">
+		select
+			a.accommo_no as no, 
+			a.host_no as hostNo, 
+			a.accommo_type as type, 
+			a.accommo_name as name, 
+			a.average_cleanliness_star as cleanlinessStar,
+			a.average_communication_star as communicationStar, 
+			a.average_accuracy_star as accuracyStar, 
+			a.average_location_star as locationStar,
+			a.accommo_address as address, 
+			a.accommo_region_depth1 as regionDepth1, 
+			a.accommo_region_depth2 as regionDepth2, 
+			a.accommo_region_depth3 as regionDepth3, 
+			a.accommo_xce as xce, 
+			a.accommo_yce as yce,
+	        min(r.weekdays_price) as minWeekdaysPrice,
+			max(r.weekdays_price) as maxWeekdaysPrice,
+	        min(r.weekend_price) as minWeekendPrice,
+			max(r.weekend_price) as maxWeekendPrice,
+	        min(r.peak_season_price) as minPeakSeasonPrice,
+			max(r.peak_season_price) as maxPeakSeasonPrice,
+	        min(r.standard_number) as minNumber,
+			max(r.maximum_number) as maxNumber
+		from
+	        tb_final_accommodations a,
+	        tb_final_rooms r
+        where 
+        	a.accommo_no = r.accommo_no
+        and 
+        	a.accommo_no = #{value}
+        group by 
+            a.accommo_no, a.host_no, a.accommo_type, a.accommo_name, a.average_cleanliness_star, a.average_communication_star, 
+            a.average_accuracy_star, a.average_location_star, a.accommo_region_depth1, a.accommo_region_depth2, 
+            a.accommo_region_depth3, a.accommo_xce, a.accommo_yce,a.accommo_address
+	</select>
+	
+	<select id="getTourListCnt" resultType="int" parameterType="int">
+		select count(*) as cnt
+		from 
+			tb_final_room_bookings bookings
+		where bookings.user_no = #{value}
+		and  room_booking_status = 0
+	</select>
+	
+	<insert id="insertMyLovePage" parameterType="com.hoge.dto.MyLoveDto">
+		insert into tb_final_wishes (user_no, accommo_no)
+		values (#{userNo}, #{accommoNo})
+	</insert>
+	
+	<delete id="deleteMyLovePage" parameterType="com.hoge.dto.MyLoveDto">
+		delete from tb_final_wishes
+		where user_no = #{userNo}
+		and accommo_no = #{accommoNo}
+	</delete>
+	
+	<select id="getMyLoveListCnt" resultType="int" parameterType="com.hoge.dto.MyLoveDto">
+		select count(*)
+		from tb_final_wishes
+		where user_no = #{userNo}
+		and accommo_no = #{accommoNo}
+	</select>
+	
+</mapper>

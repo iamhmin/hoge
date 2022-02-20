@@ -1,0 +1,683 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.ReviewMapper">
+
+		<!-- 유상효 숙소 디테일 리뷰 조회 -->
+		<select id="getAccDetailReviews" parameterType="int" resultType="com.hoge.dto.AccReviewDto">
+			select
+				r.review_content as content,
+				r.review_created_date as createdDate,
+				u.user_name as userName,
+				u.user_image as userImage
+			from
+				tb_final_users u, tb_final_accommo_reviews r
+			where
+				u.user_no = r.user_no
+			and r.accommo_no = #{value}
+			order by r.review_created_date desc
+		</select>
+		
+		<!-- 유상효 숙소 디테일 리뷰 조회 6개까지 -->
+		<select id="getAccDetailReviews6" parameterType="int" resultType="com.hoge.dto.AccReviewDto">
+			select
+				review_content as content,
+				review_created_date as createdDate,
+				user_name as userName,
+				user_image as userImage
+			from
+				(select r.review_content, r.review_created_date, u.user_name, u.user_image
+			     from tb_final_users u, tb_final_accommo_reviews r
+			     where u.user_no = r.user_no
+			     and r.accommo_no = #{value}
+			     order by r.review_created_date desc)
+			where
+				rownum &lt;= 6
+		</select>
+		
+		<!-- 유상효 숙소 디테일 평점 조회 -->
+		<select id="getAccDetailStar" parameterType="int" resultType="com.hoge.dto.AccReviewDto">
+			select
+				average_cleanliness_star as cleanlinessStar,
+				average_communication_star as communicationStar,
+				average_accuracy_star as accuracyStar,
+				average_location_star as locationStar
+			from
+				tb_final_accommodations
+			where
+				accommo_no = #{value}
+		</select>
+		
+		<!-- 유상효 숙소 디테일 리뷰 갯수조회 -->
+		<select id="getAccDetailReviewsTotal" parameterType="int" resultType="com.hoge.dto.AccReviewDto">
+			select
+				count(*) as total
+			from
+				tb_final_users u, tb_final_accommo_reviews r
+			where
+				u.user_no = r.user_no
+			and r.accommo_no = #{value}
+		</select>
+		
+		<!-- 유상효 체험 디테일 리뷰 조회 -->
+		<select id="getActDetailReviews" parameterType="int" resultType="com.hoge.dto.ActReviewDto">
+			select
+				r.review_content as content,
+				r.review_created_date as createdDate,
+				u.user_name as userName,
+				u.user_image as userImage
+			from
+				tb_final_users u, tb_final_activity_reviews r
+			where
+				u.user_no = r.user_no
+			and r.activity_no = #{value}
+			order by r.review_created_date desc
+		</select>
+		
+		<!-- 유상효 체험 디테일 리뷰 조회 6개까지 -->
+		<select id="getActDetailReviews6" parameterType="int" resultType="com.hoge.dto.ActReviewDto">
+			select
+				review_content as content,
+				review_created_date as createdDate,
+				user_name as userName,
+				user_image as userImage
+			from
+				(select r.review_content, r.review_created_date, u.user_name, u.user_image
+			     from tb_final_users u, tb_final_activity_reviews r
+			     where u.user_no = r.user_no
+			     and r.activity_no = #{value}
+			     order by r.review_created_date desc)
+			where
+				rownum &lt;= 6
+		</select>
+		
+		<!-- 유상효 체험 디테일 평점 조회 -->
+		<select id="getActDetailStar" parameterType="int" resultType="com.hoge.dto.ActReviewDto">
+			select
+				average_star as average
+			from
+				tb_final_activities
+			where
+				activity_no = #{value}
+		</select>
+		
+		<!-- 유상효 체험 디테일 리뷰 갯수조회 -->
+		<select id="getActDetailReviewsTotal" parameterType="int" resultType="com.hoge.dto.ActReviewDto">
+			select
+				count(*) as total
+			from
+				tb_final_users u, tb_final_activity_reviews r
+			where
+				u.user_no = r.user_no
+			and r.activity_no = #{value}
+		</select>
+		
+		
+		
+  
+		<!--//성하민 호스트페이지 메인에서 최근 3일 리뷰건수 가져오기
+		int getRecentReviewCountByActivityNo(int no);
+		-->
+	 <select id="getRecentReviewCountByActivityNo" parameterType="int" resultType="int">
+		select count(*)
+		from TB_FINAL_ACTIVITY_REVIEWS
+		where review_created_date &gt;= trunc(sysdate-2)
+		and activity_no = #{no}
+		and REVIEW_DELETED = 'N'
+	</select>
+	
+	<!--//성하민 호스트페이지 메인에서 오늘 리뷰건수 가져오기
+		int getTodayReviewCountByActivityNo(int no);
+		-->
+		<select id="getTodayReviewCountByActivityNo" parameterType="int" resultType="int">
+		select count(*)
+		from TB_FINAL_ACTIVITY_REVIEWS
+		where review_created_date &gt;= trunc(sysdate)
+		and activity_no = #{no}
+		and REVIEW_DELETED = 'N'
+		</select>
+		
+	 
+	 
+  <!-- // 성하민 호스트페이지 메인에서 최근 3일 리뷰데이터 가져오기
+  List<AdminActivityReviewDto> getRecentReviewListByActivityNo(Criteria criteria); 
+		
+	 -->
+	<select id="getRecentReviewListByActivityNo" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.AdminActivityReviewDto">
+		select 	
+			ACtivity_REVIEW_NO as no,
+			USER_NO	as userNo,
+			HOST_NO	as hostNo,
+			
+			ACtivity_NO as activityNo,
+			ACtivity_NAME as activityName,
+				
+			REVIEW_STAR	as star,
+			
+			REVIEW_CONTENT as content,
+			REVIEW_CREATED_DATE	as createdDate,
+			REVIEW_DELETED as deleted,
+			REVIEW_UPDATED_DATE	as updatedDate,
+				
+			REVIEW_ANSWERED	as answered,
+			ANSWER_CONTENT as answerContent,
+			ANSWER_DELETED as answerDeleted,
+			ANSWER_CREATED_DATE as answerCreatedDate
+		from (
+			select 	
+			R.ACtivity_REVIEW_NO,
+			R.USER_NO,
+			A.HOST_NO,
+			
+			R.ACtivity_NO,
+			A.ACtivity_NAME,
+				
+			R.REVIEW_STAR,
+		
+				
+			R.REVIEW_CONTENT,
+			R.REVIEW_CREATED_DATE,
+			R.REVIEW_DELETED,
+			R.REVIEW_UPDATED_DATE,
+				
+			R.REVIEW_ANSWERED,
+			R.ANSWER_CONTENT,
+			R.ANSWER_DELETED,
+			R.ANSWER_CREATED_DATE,
+	 		row_number() over (order by R.REVIEW_CREATED_DATE desc) rn
+		from TB_FINAL_ACTIVITY_REVIEWS R, TB_FINAL_ACtivities A
+		where R.ACtivity_NO = A.ACtivity_NO
+		and r.review_created_date &gt;= trunc(sysdate-2)
+		and r.ACtivity_NO = #{no}
+		and REVIEW_DELETED = 'N'
+		)
+		where rn between #{beginIndex} and #{endIndex}
+	</select> 
+	 
+  
+  
+	
+  
+  <!-- 성하민
+		int getAccommoReviewsTotalRows(Criteria criteria);
+	 -->
+	 <select id="getAccommoReviewsTotalRows" parameterType="com.hoge.form.Criteria" resultType="int">
+		select count(*)
+		from TB_FINAL_ACCOMMO_REVIEWS R, TB_FINAL_ACCOMMODATIONS A
+		where R.ACCOMMO_NO = A.ACCOMMO_NO
+			<if test="opt != null and value != null and opt != '' and value != ''">
+				<choose>
+					<when test="opt == '호스트번호'">
+						and A.host_NO = #{value} 
+					</when>
+					<when test="opt == '시설번호'">
+						and A.ACCOMMO_NO = #{value}
+					</when>
+					<when test="opt == '회원번호'">
+						and R.USER_NO = #{value}
+					</when>
+					<when test="opt == '시설이름'">
+						and A.ACCOMMO_NAME like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '내용'">
+						and R.REVIEW_CONTENT like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>
+	</select>
+  
+  
+  <!-- 성하민
+		int getActivityReviewsTotalRows(Criteria criteria);
+  
+	 -->
+	 <select id="getActivityReviewsTotalRows" parameterType="com.hoge.form.Criteria" resultType="int">
+		select count(*)
+		from TB_FINAL_ACTIVITY_REVIEWS R, TB_FINAL_ACTIVITIES A
+		where R.ACTIVITY_NO = A.ACTIVITY_NO
+			<if test="opt1 != null and value1 != null and opt1 != '' and value1 != ''">
+				<choose>
+					<when test="opt1 == '호스트번호'">
+						and A.host_NO = #{value1} 
+					</when>
+					<when test="opt1 == '체험번호'">
+						and A.ACTIVITY_NO = #{value1}
+					</when>
+					<when test="opt1 == '회원번호'">
+						and R.USER_NO = #{value1}
+					</when>
+					<when test="opt1 == '체험이름'">
+						and A.ACTIVITY_NAME like '%' || #{value1} || '%'
+					</when>
+					<when test="opt1 == '내용'">
+						and R.REVIEW_CONTENT like '%' || #{value1} || '%'
+					</when>
+				</choose>
+			</if>
+	</select>
+  
+  
+  
+  
+  
+   <!-- // 성하민
+  List<AdminActivityReviewDto> getActivityReviewsByCriteria(Criteria criteria);
+	 -->
+	<select id="getActivityReviewsByCriteria" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.AdminActivityReviewDto">
+		select 	
+			ACTIVITY_REVIEW_NO as no,
+			USER_NO	as userNo,
+			HOST_NO	as hostNo,
+			
+			ACTIVITY_NO as activityNo,
+			ACTIVITY_NAME as activityName,
+				
+			REVIEW_STAR	as star,
+			
+			REVIEW_CONTENT as content,
+			REVIEW_CREATED_DATE	as createdDate,
+			REVIEW_DELETED as deleted,
+			REVIEW_UPDATED_DATE	as updatedDate,
+				
+			REVIEW_ANSWERED	as answered,
+			ANSWER_CONTENT as answerContent,
+			ANSWER_DELETED as answerDeleted,
+			ANSWER_CREATED_DATE as answerCreatedDate
+		from (
+			select 	
+			R.ACTIVITY_REVIEW_NO,
+			R.USER_NO,
+			A.HOST_NO,
+			
+			R.ACTIVITY_NO,
+			A.ACTIVITY_NAME,
+				
+			R.REVIEW_STAR,
+				
+			R.REVIEW_CONTENT,
+			R.REVIEW_CREATED_DATE,
+			R.REVIEW_DELETED,
+			R.REVIEW_UPDATED_DATE,
+				
+			R.REVIEW_ANSWERED,
+			R.ANSWER_CONTENT,
+			R.ANSWER_DELETED,
+			R.ANSWER_CREATED_DATE,
+	 		row_number() over (order by R.REVIEW_CREATED_DATE desc) rn
+		from TB_FINAL_ACTIVITY_REVIEWS R, TB_FINAL_ACTIVITIES A
+		where R.ACTIVITY_NO = A.ACTIVITY_NO
+			<if test="opt1 != null and value1 != null and opt1 != '' and value1 != ''">
+				<choose>
+					<when test="opt1 == '호스트번호'">
+						and A.host_NO = #{value1} 
+					</when>
+					<when test="opt1 == '체험번호'">
+						and A.ACTIVITY_NO = #{value1}
+					</when>
+					<when test="opt1 == '회원번호'">
+						and R.USER_NO = #{value1}
+					</when>
+					<when test="opt1 == '체험이름'">
+						and A.ACTIVITY_NAME like '%' || #{value1} || '%'
+					</when>
+					<when test="opt1 == '내용'">
+						and R.REVIEW_CONTENT like '%' || #{value1} || '%'
+					</when>
+				</choose>
+			</if>
+		)
+		where rn between #{beginIndex} and #{endIndex}
+	</select> 
+  
+  <!-- // 성하민
+  ReviewAccommo getAccommoReviewByReviewNo(int no);
+		
+	 -->
+	<select id="getAccommoReviewByReviewNo" parameterType="int" resultType="com.hoge.vo.other.ReviewAccommo">
+		select 	
+			ACCOMMO_REVIEW_NO as no,
+			USER_NO	as userNo,
+		
+			ACCOMMO_NO as accommoNo,
+			
+		
+			REVIEW_CLEANLINESS_STAR	as cleanlinessStar,
+			REVIEW_COMMUNICATION_STAR as communicationStar,
+			REVIEW_ACCURACY_STAR as accuracyStar,
+			REVIEW_LOCATION_STAR as locationStar,
+
+			REVIEW_CONTENT as content,
+			REVIEW_CREATED_DATE	as createdDate,
+			REVIEW_DELETED as deleted,
+			REVIEW_UPDATED_DATE	as updatedDate,
+ 
+ 			REVIEW_ANSWERED	as answered,
+			ANSWER_CONTENT as answerContent,
+			ANSWER_DELETED as answerDeleted,
+			ANSWER_CREATED_DATE as answerCreatedDate
+		from TB_FINAL_ACCOMMO_REVIEWS
+		where ACCOMMO_REVIEW_NO = #{no}
+	</select> 
+  <!-- // 성하민
+  AdminAccommoReviewDto getAccommoReviewsDtoByReviewNo(int no);
+		
+	 -->
+	<select id="getAccommoReviewsDtoByReviewNo" parameterType="int" resultType="com.hoge.dto.AdminAccommoReviewDto">
+		select 	
+			r.ACCOMMO_REVIEW_NO as no,
+			r.USER_NO	as userNo,
+			u.USER_Name as userName,
+			
+			r.ACCOMMO_NO as accommoNo,
+			a.ACCOMMO_NAME as accommoName,
+				
+			r.REVIEW_CLEANLINESS_STAR	as cleanlinessStar,
+			r.REVIEW_COMMUNICATION_STAR as communicationStar,
+			r.REVIEW_ACCURACY_STAR as accuracyStar,
+			r.REVIEW_LOCATION_STAR as locationStar,
+
+			r.REVIEW_CONTENT as content,
+			r.REVIEW_CREATED_DATE	as createdDate,
+			r.REVIEW_DELETED as deleted,
+			r.REVIEW_UPDATED_DATE	as updatedDate,
+ 
+ 			r.REVIEW_ANSWERED	as answered,
+			r.ANSWER_CONTENT as answerContent,
+			r.ANSWER_DELETED as answerDeleted,
+			r.ANSWER_CREATED_DATE as answerCreatedDate
+		from TB_FINAL_ACCOMMO_REVIEWS R, TB_FINAL_ACCOMMODATIONS A, tb_final_users u
+		where R.ACCOMMO_NO = A.ACCOMMO_NO
+		AND U.USER_NO = R.USER_NO
+		and r.ACCOMMO_REVIEW_NO = #{no}
+	</select> 
+  
+  <!-- // 성하민
+  List<AdminAccommoReviewDto> getAccommoReviewsByCriteria(Criteria criteria);
+		
+	 -->
+	<select id="getAccommoReviewsByCriteria" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.AdminAccommoReviewDto">
+		select 	
+			ACCOMMO_REVIEW_NO as no,
+			USER_NO	as userNo,
+			USER_Name as userName,
+			HOST_NO	as hostNo,
+			
+			ACCOMMO_NO as accommoNo,
+			ACCOMMO_NAME as accommoName,
+				
+			REVIEW_CLEANLINESS_STAR	as cleanlinessStar,
+			REVIEW_COMMUNICATION_STAR as communicationStar,
+			REVIEW_ACCURACY_STAR as accuracyStar,
+			REVIEW_LOCATION_STAR as locationStar,
+				
+			REVIEW_CONTENT as content,
+			REVIEW_CREATED_DATE	as createdDate,
+			REVIEW_DELETED as deleted,
+			REVIEW_UPDATED_DATE	as updatedDate,
+				
+			REVIEW_ANSWERED	as answered,
+			ANSWER_CONTENT as answerContent,
+			ANSWER_DELETED as answerDeleted,
+			ANSWER_CREATED_DATE as answerCreatedDate
+		from (
+			select 	
+			R.ACCOMMO_REVIEW_NO,
+			R.USER_NO,
+			A.HOST_NO,
+			u.user_name,
+			R.ACCOMMO_NO,
+			A.ACCOMMO_NAME,
+				
+			R.REVIEW_CLEANLINESS_STAR,
+			R.REVIEW_COMMUNICATION_STAR,
+			R.REVIEW_ACCURACY_STAR,
+			R.REVIEW_LOCATION_STAR,
+				
+			R.REVIEW_CONTENT,
+			R.REVIEW_CREATED_DATE,
+			R.REVIEW_DELETED,
+			R.REVIEW_UPDATED_DATE,
+				
+			R.REVIEW_ANSWERED,
+			R.ANSWER_CONTENT,
+			R.ANSWER_DELETED,
+			R.ANSWER_CREATED_DATE,
+	 		row_number() over (order by R.REVIEW_CREATED_DATE desc) rn
+		from TB_FINAL_ACCOMMO_REVIEWS R, TB_FINAL_ACCOMMODATIONS A, tb_final_users u
+		where R.ACCOMMO_NO = A.ACCOMMO_NO
+		AND U.USER_NO = R.USER_NO
+			<if test="opt != null and value != null and opt != '' and value != ''">
+				<choose>
+					<when test="opt == '호스트번호'">
+						and A.host_NO = #{value} 
+					</when>
+					<when test="opt == '회원번호'">
+						and R.USER_NO = #{value}
+					</when>
+					<when test="opt == '시설번호'">
+						and A.ACCOMMO_NO = #{value}
+					</when>
+					<when test="opt == '시설이름'">
+						and A.ACCOMMO_NAME like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '내용'">
+						and R.REVIEW_CONTENT like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>
+		)
+		where rn between #{beginIndex} and #{endIndex}
+	</select> 
+	 
+	 
+	 
+	 
+		<!--//성하민 호스트페이지 메인에서 최근 3일 리뷰건수 가져오기
+		int getRecentReviewCountByAccommoNo(int no);
+		-->
+	 <select id="getRecentReviewCountByAccommoNo" parameterType="int" resultType="int">
+		select count(*)
+		from TB_FINAL_ACCOMMO_REVIEWS
+		where review_created_date &gt;= trunc(sysdate-2)
+		and accommo_no = #{no}
+		and REVIEW_DELETED = 'N'
+	</select>
+	
+	<!--//성하민 호스트페이지 메인에서 오늘 리뷰건수 가져오기
+		int getTodayReviewCountByAccommoNo(int no);
+		-->
+		<select id="getTodayReviewCountByAccommoNo" parameterType="int" resultType="int">
+		select count(*)
+		from TB_FINAL_ACCOMMO_REVIEWS
+		where review_created_date &gt;= trunc(sysdate)
+		and accommo_no = #{no}
+		and REVIEW_DELETED = 'N'
+		</select>
+		
+	 
+	 
+  <!-- // 성하민 호스트페이지 메인에서 최근 3일 리뷰데이터 가져오기
+  List<AdminAccommoReviewDto> getRecentReviewListByAccommoNo(Criteria criteria); 
+		
+	 -->
+	<select id="getRecentReviewListByAccommoNo" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.AdminAccommoReviewDto">
+		select 	
+			ACCOMMO_REVIEW_NO as no,
+			USER_NO	as userNo,
+			HOST_NO	as hostNo,
+			
+			ACCOMMO_NO as accommoNo,
+			ACCOMMO_NAME as accommoName,
+				
+			REVIEW_CLEANLINESS_STAR	as cleanlinessStar,
+			REVIEW_COMMUNICATION_STAR as communicationStar,
+			REVIEW_ACCURACY_STAR as accuracyStar,
+			REVIEW_LOCATION_STAR as locationStar,
+				
+			REVIEW_CONTENT as content,
+			REVIEW_CREATED_DATE	as createdDate,
+			REVIEW_DELETED as deleted,
+			REVIEW_UPDATED_DATE	as updatedDate,
+				
+			REVIEW_ANSWERED	as answered,
+			ANSWER_CONTENT as answerContent,
+			ANSWER_DELETED as answerDeleted,
+			ANSWER_CREATED_DATE as answerCreatedDate
+		from (
+			select 	
+			R.ACCOMMO_REVIEW_NO,
+			R.USER_NO,
+			A.HOST_NO,
+			
+			R.ACCOMMO_NO,
+			A.ACCOMMO_NAME,
+				
+			R.REVIEW_CLEANLINESS_STAR,
+			R.REVIEW_COMMUNICATION_STAR,
+			R.REVIEW_ACCURACY_STAR,
+			R.REVIEW_LOCATION_STAR,
+				
+			R.REVIEW_CONTENT,
+			R.REVIEW_CREATED_DATE,
+			R.REVIEW_DELETED,
+			R.REVIEW_UPDATED_DATE,
+				
+			R.REVIEW_ANSWERED,
+			R.ANSWER_CONTENT,
+			R.ANSWER_DELETED,
+			R.ANSWER_CREATED_DATE,
+	 		row_number() over (order by R.REVIEW_CREATED_DATE desc) rn
+		from TB_FINAL_ACCOMMO_REVIEWS R, TB_FINAL_ACCOMMODATIONS A
+		where R.ACCOMMO_NO = A.ACCOMMO_NO
+		and r.review_created_date &gt;= trunc(sysdate-2)
+		and r.accommo_no = #{no}
+		and REVIEW_DELETED = 'N'
+		)
+		where rn between #{beginIndex} and #{endIndex}
+	</select> 
+	 
+	 <!-- 이승준: 나의 해당숙소리뷰 인서트
+ 		 void insertAccommoReview(ReviewAccommo accommoReviewInfo); 
+	 -->
+	<insert id="insertAccommoReview" parameterType="com.hoge.vo.other.ReviewAccommo">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+				select final_accommo_review_no_seq.nextval
+				from dual
+		</selectKey>
+		insert into tb_final_accommo_reviews (
+			accommo_review_no,
+            user_no, 
+            accommo_no, 
+            review_cleanliness_star, 
+            review_communication_star, 
+			review_accuracy_star, 
+            review_location_star, 
+            review_content,
+            check_in_date,
+            check_out_date,
+            room_no)
+		values (
+			#{no},
+			#{userNo},
+			#{accommoNo},
+			#{cleanlinessStar},
+			#{communicationStar},
+			#{accuracyStar},
+			#{locationStar},
+			#{content},
+            #{checkInDate},
+            #{checkOutDate},
+            #{roomNo})
+	</insert>
+	
+	<!--이승준: 나의 해당숙소리뷰 체크
+  		int reviewCheck(UserRevInfoDto userRevInfoDto);
+		
+	 -->
+	<select id="reviewCheck" parameterType="com.hoge.dto.UserRevInfoDto" resultType="int">
+		select 
+			count(*) as reviewStatus
+		from 
+			tb_final_accommo_reviews
+		where
+		    review_deleted = 'N'
+		and
+		    user_no = #{userNo}
+		and 
+		    accommo_no = #{accommoNo}
+		and 
+		    room_no = #{roomNo}
+		and 
+		    check_in_date = #{checkInDate}
+		and 
+		    check_out_date = #{checkOutDate}
+	</select>
+	
+	<!--이승준: 나의 해당숙소리뷰 조회
+  		int reviewCheck(UserRevInfoDto userRevInfoDto);
+	 -->
+	<select id="selectAccommoReview" parameterType="com.hoge.dto.UserRevInfoDto" resultType="com.hoge.vo.other.ReviewAccommo">
+		select
+			accommo_review_no as no,
+            user_no as userNo, 
+            accommo_no as accommoNo, 
+            review_cleanliness_star as cleanlinessStar, 
+            review_communication_star as communicationStar, 
+			review_accuracy_star as accuracyStar, 
+            review_location_star as locationStar,
+            review_created_date as createdDate,
+            review_deleted as deleted,
+            review_updated_date as updatedDate,
+            review_answered as answered,
+            answer_content as answerContent,
+            answer_created_date as answerCreatedDate,
+            answer_deleted as answerDeleted,
+            review_content as content,
+            check_in_date as checkInDate,
+            check_out_date as checkOutDate,
+            room_no as roomNo
+		from 
+			tb_final_accommo_reviews
+		where
+			review_deleted = 'N'
+        and
+			user_no = #{userNo}
+		and 
+			accommo_no = #{accommoNo}
+        and 
+			room_no = #{roomNo}
+        and 
+            check_in_date = #{checkInDate}
+        and 
+            check_out_date = #{checkOutDate}
+	</select>
+	
+	<!--성하민 리뷰 답변하기
+	 -->
+	<update id="answerUpdateAccommReview" parameterType="com.hoge.vo.other.ReviewAccommo">
+		update tb_final_accommo_reviews
+		<set>
+			review_answered = 'Y',
+            answer_content = #{answerContent},
+            answer_created_date = sysdate
+         </set>
+		where
+			accommo_review_no = #{no}
+	</update>  
+	
+	<update id="updateAccommReview" parameterType="com.hoge.vo.other.ReviewAccommo">
+		update tb_final_accommo_reviews
+		<set>
+	    	review_cleanliness_star = #{cleanlinessStar},
+	    	review_communication_star = #{communicationStar}, 
+			review_accuracy_star = #{accuracyStar}, 
+	        review_location_star = #{locationStar},
+	    <if test="deleted != null">
+	        review_deleted = #{deleted},
+	    </if>
+	        review_updated_date = SYSDATE,
+	        review_content = #{content}
+	 	</set>
+		where
+			accommo_review_no = #{no}
+	</update>  
+</mapper>

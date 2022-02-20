@@ -1,0 +1,585 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ include file="../common/tags.jsp" %>
+<!-- 
+ -->
+<main id="main">
+  <article id="admin-user">
+  <h1 class="section__title">숙소 할인 프로모션</h1>
+  <form
+      class="search-user__form review"
+      id="form-search-userQnA"
+      method="get"
+      action="user-qna"
+    >
+      <ul class="search-bar">
+      	<li>
+      		<select
+          class="search__select accommoType"
+          name="order"
+          onchange="searchAccDiscountPromotions()"
+        >
+          	<option value="" selected disabled="disabled">정렬순</option>
+			   	<option value="최근등록일">최근등록일순</option>
+                <option value="마감일">마감일순</option>
+        </select>
+      	</li>
+      	<li>
+      		<select class="search__select" name="opt">
+          	<option value="" selected disabled="disabled">검색조건</option>
+          	<option value="숙소이름">숙소이름</option>
+			<option value="숙소번호">숙소번호</option>
+        </select>
+      	</li>
+      	<li>
+      		<input type="text" class="search-user" name="value" value="" />
+        <button type="button" class="btn__search" id="btn-search-userQnA" onclick="searchAccDiscountPromotions()">
+          검색
+        </button>
+      	</li>
+      </ul>
+    </form>
+
+	<table class="user-list-table">
+		<colgroup>
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>no.</th>
+          <th>숙소번호</th>
+          <th>숙소이름</th>
+          <th>평일 / 주말 / 성수기 할인율</th>
+          <th>프로모션 소개</th>
+          <th>기간</th>
+          <th>등록일</th>
+        </tr>
+      </thead>
+			<tbody id="dataSection">
+				
+			</tbody>
+		</table>
+
+		<!-- 페이지 내비게이션 표시 -->
+		 <div id="pagination">
+	        <ul class="pagination__list" id="paginationBox">
+	          
+	        </ul>
+      	</div>
+
+ </article>
+ <article id="admin-user">
+ <h1 class="section__title">숙소 증정 프로모션</h1>
+  <form
+      class="search-user__form review"
+      id="form-search-userQnA"
+      method="get"
+      action="user-qna"
+    >
+      <ul class="search-bar">
+      	<li>
+      		<select
+          class="search__select accommoType"
+          name="order1"
+          onchange="searchAccOfferPromotions()"
+        >
+          	<option value="" selected disabled="disabled">정렬순</option>
+			   	<option value="최근등록일">최근등록일순</option>
+                <option value="마감일">마감일순</option>
+        </select>
+      	</li>
+      	<li>
+      		<select class="search__select" name="opt1">
+          	<option value="" selected disabled="disabled">검색조건</option>
+          	<option value="숙소이름">숙소이름</option>
+			<option value="숙소번호">숙소번호</option>
+        </select>
+      	</li>
+      	<li>
+      		<input type="text" class="search-user" name="value1" value="" />
+        <button type="button" class="btn__search" id="btn-search-userQnA" onclick="searchAccOfferPromotions()">
+          검색
+        </button>
+      	</li>
+      </ul>
+    </form>
+
+	<table class="user-list-table">
+		<colgroup>
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>no.</th>
+          <th>숙소번호</th>
+          <th>숙소이름</th>
+          <th>증정내용</th>
+          <th>프로모션 소개</th>
+          <th>기간</th>
+          <th>등록일</th>
+        </tr>
+      </thead>
+			<tbody id="dataSection1">
+				
+			</tbody>
+		</table>
+
+		<!-- 페이지 내비게이션 표시 -->
+		 <div id="pagination">
+	        <ul class="pagination__list" id="paginationBox1">
+	          
+	        </ul>
+      	</div>
+
+ </article>
+ 
+ 
+ <article id="admin-user">
+ <h1 class="section__title">체험 할인 프로모션</h1>
+  <form
+      class="search-user__form review"
+      id="form-search-userQnA"
+      method="get"
+      action="user-qna"
+    >
+      <ul class="search-bar">
+      	<li>
+      		<select
+          class="search__select accommoType"
+          name="order2"
+          onchange="searchActDiscountPromotions()"
+        >
+          	<option value="" selected disabled="disabled">정렬순</option>
+			   		<option value="최근등록일">최근등록일순</option>
+                <option value="마감일">마감일순</option>
+        </select>
+      	</li>
+      	<li>
+      		<select class="search__select" name="opt2">
+          	<option value="" selected disabled="disabled">검색조건</option>
+          	<option value="체험이름">체험이름</option>
+			<option value="체험번호">체험번호</option>
+        </select>
+      	</li>
+      	<li>
+      		<input type="text" class="search-user" name="value2" value="" />
+        <button type="button" class="btn__search" id="btn-search-userQnA" onclick="searchActDiscountPromotions()">
+          검색
+        </button>
+      	</li>
+      </ul>
+    </form>
+
+	<table class="user-list-table">
+		<colgroup>
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>no.</th>
+          <th>체험번호</th>
+          <th>체험이름</th>
+          <th>평일 / 주말 / 성수기 할인율</th>
+          <th>프로모션 소개</th>
+          <th>기간</th>
+          <th>등록일</th>
+        </tr>
+      </thead>
+			<tbody id="dataSection2">
+				
+			</tbody>
+		</table>
+
+		<!-- 페이지 내비게이션 표시 -->
+		 <div id="pagination">
+	        <ul class="pagination__list" id="paginationBox2">
+	          
+	        </ul>
+      	</div>
+
+ </article>
+ 
+ <article id="admin-user">
+ <h1 class="section__title">체험 증정 프로모션</h1>
+  <form
+      class="search-user__form review"
+      id="form-search-userQnA"
+      method="get"
+      action="user-qna"
+    >
+      <ul class="search-bar">
+      	<li>
+      		<select
+          class="search__select accommoType"
+          name="order3"
+          onchange="searchActOfferPromotions()"
+        >
+          	<option value="" selected disabled="disabled">정렬순</option>
+			   	<option value="최근등록일">최근등록일순</option>
+                <option value="마감일">마감일순</option>
+        </select>
+      	</li>
+      	<li>
+      		<select class="search__select" name="opt3">
+          	<option value="" selected disabled="disabled">검색조건</option>
+          	<option value="체험이름">체험이름</option>
+			<option value="체험번호">체험번호</option>
+        </select>
+      	</li>
+      	<li>
+      		<input type="text" class="search-user" name="value3" value="" />
+        <button type="button" class="btn__search" id="btn-search-userQnA" onclick="searchActOfferPromotions()">
+          검색
+        </button>
+      	</li>
+      </ul>
+    </form>
+
+	<table class="user-list-table">
+		<colgroup>
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+	        <col style="width: 10%" />
+      </colgroup>
+      <thead>
+        <tr>
+          <th>no.</th>
+          <th>체험번호</th>
+          <th>체험이름</th>
+          <th>증정내용</th>
+          <th>프로모션 소개</th>
+          <th>기간</th>
+          <th>등록일</th>
+        </tr>
+      </thead>
+			<tbody id="dataSection3">
+				
+			</tbody>
+		</table>
+
+		<!-- 페이지 내비게이션 표시 -->
+		 <div id="pagination">
+	        <ul class="pagination__list" id="paginationBox3">
+	          
+	        </ul>
+      	</div>
+
+ </article>
+ 
+ 
+ 
+ 
+ 
+ 
+ </main>
+ 
+ 
+<script type="text/javascript">
+$(function(){
+	
+	activeMenu("프로모션관리", "프로모션 리스트");
+	
+})
+searchAccDiscountPromotions();
+searchAccOfferPromotions();
+searchActOfferPromotions();
+searchActDiscountPromotions();
+
+
+function searchAccDiscountPromotions(page) {
+	var opt = $("select[name=opt]").val();
+	var value = $.trim($(":input[name=value]").val());
+	var order =  $("select[name=order]").val();
+	
+			$.ajax({
+				type: 'POST',
+				url : "/admin/searchAccDiscountPromotions.do", //서비스 주소 
+				data : { //서비스 처리에 필요한 인자값
+					page : page,
+					opt : opt,
+					value : value,
+					order : order
+				},
+				success : function(result) {
+					const list = result['list'];
+					const pagination = result['pagination'];
+					var data = "";
+					var block = "";
+
+					console.log(pagination);
+					console.log(list);
+					// 테이블의 row를 삽입하는 부분
+					for (var i = 0; i < list.length; i++) {
+						data += "<tr>";
+						data += "<td>" + list[i].no + "</td>";
+						data += "<td>" + list[i].accommoNo + "</td>";
+						data += "<td>" + list[i].accommoName + "</td>";
+						data += "<td>" + (list[i].weekdaysDiscountRate*100)+ "% / " +(list[i].weekendDiscountRate*100)+ "% / "+(list[i].peakSeasonDiscountRate*100)+ "%</td>";
+						data += "<td>" + list[i].introContent + "</td>";
+						data += "<td>" + list[i].startingDate+ "~" +list[i].endingDate;+ "</td>";
+						data += "<td>" + list[i].registeredDate; + "</td>";
+						data += "</tr>";
+					}
+					$("#dataSection").html(data);
+
+					// 이전버튼 활성화 여부를 결정하는 부분
+					if (pagination['prevPage']) {
+						block += "<li class='page-item'><a class='page-link' onclick='searchAccDiscountPromotions("
+								+ (pagination['beginPage'] - 1)
+								+ ")'> < </a></li>";
+					} else {
+						block += "<li class='page-item disabled'><a class='page-link'> < </a></li>";
+					}
+
+					// 번호를 표시하는 부분
+					for (var i = pagination['beginPage']; i <= pagination['endPage']; i++) {
+						if (page !== i) {
+							block += "<li class='page-item'><a class='page-link' onclick='searchAccDiscountPromotions("
+									+ i + ")'>" + (i) + "</a></li>";
+						} else {
+							block += "<li class='page-item disabled'><a class='page-link'>"
+									+ (i) + "</a></li>";
+						}
+					}
+
+					if (pagination['nextPage']) {
+						block += "<li class='page-item'><a class='page-link' onclick='searchAccDiscountPromotions("
+								+ (pagination['endPage'] + 1)
+								+ ")'>  > </a></li>";
+					} else {
+						block += "<li class='page-item disabled'><a class='page-link'> > </a></li>";
+					}
+					
+					$("#paginationBox").html(block);
+				}
+			})
+}
+function searchAccOfferPromotions(page) {
+	var opt = $("select[name=opt1]").val();
+	var value = $.trim($(":input[name=value1]").val());
+	var order =  $("select[name=order1]").val();
+	
+			$.ajax({
+				type: 'POST',
+				url : "/admin/searchAccOfferPromotions.do", //서비스 주소 
+				data : { //서비스 처리에 필요한 인자값
+					page : page,
+					opt : opt,
+					value : value,
+					order : order
+				},
+				success : function(result) {
+					const list = result['list'];
+					const pagination = result['pagination'];
+					var data = "";
+					var block = "";
+
+					console.log(pagination);
+					console.log(list);
+					// 테이블의 row를 삽입하는 부분
+					for (var i = 0; i < list.length; i++) {
+						data += "<tr>";
+						data += "<td>" + list[i].no + "</td>";
+						data += "<td>" + list[i].accommoNo + "</td>";
+						data += "<td>" + list[i].accommoName + "</td>";
+						data += "<td>" + list[i].offerContent+ "</td>";
+						data += "<td>" + list[i].introContent + "</td>";
+						data += "<td>" + list[i].startingDate+ "~" +list[i].endingDate;+ "</td>";
+						data += "<td>" + list[i].registeredDate; + "</td>";
+						data += "</tr>";
+					}
+					$("#dataSection1").html(data);
+
+					// 이전버튼 활성화 여부를 결정하는 부분
+					if (pagination['prevPage']) {
+						block += "<li class='page-item'><a class='page-link' onclick='searchAccOfferPromotions("
+								+ (pagination['beginPage'] - 1)
+								+ ")'> < </a></li>";
+					} else {
+						block += "<li class='page-item disabled'><a class='page-link'> < </a></li>";
+					}
+
+					// 번호를 표시하는 부분
+					for (var i = pagination['beginPage']; i <= pagination['endPage']; i++) {
+						if (page !== i) {
+							block += "<li class='page-item'><a class='page-link' onclick='searchAccOfferPromotions("
+									+ i + ")'>" + (i) + "</a></li>";
+						} else {
+							block += "<li class='page-item disabled'><a class='page-link'>"
+									+ (i) + "</a></li>";
+						}
+					}
+
+					if (pagination['nextPage']) {
+						block += "<li class='page-item'><a class='page-link' onclick='searchAccOfferPromotions("
+								+ (pagination['endPage'] + 1)
+								+ ")'>  > </a></li>";
+					} else {
+						block += "<li class='page-item disabled'><a class='page-link'> > </a></li>";
+					}
+					
+					$("#paginationBox1").html(block);
+				}
+			})
+}
+
+function searchActDiscountPromotions(page) {
+	var opt = $("select[name=opt2]").val();
+	var value = $.trim($(":input[name=value2]").val());
+	var order =  $("select[name=order2]").val();
+	
+			$.ajax({
+				type: 'POST',
+				url : "/admin/searchActDiscountPromotions.do", //서비스 주소 
+				data : { //서비스 처리에 필요한 인자값
+					page : page,
+					opt : opt,
+					value : value,
+					order : order
+				},
+				success : function(result) {
+					const list = result['list'];
+					const pagination = result['pagination'];
+					var data = "";
+					var block = "";
+
+					console.log(pagination);
+					console.log(list);
+					// 테이블의 row를 삽입하는 부분
+					for (var i = 0; i < list.length; i++) {
+						data += "<tr>";
+						data += "<td>" + list[i].no + "</td>";
+						data += "<td>" + list[i].activityNo + "</td>";
+						data += "<td>" + list[i].activityName + "</td>";
+						data += "<td>" + (list[i].weekdaysDiscountRate*100)+ "% / " +(list[i].weekendDiscountRate*100)+ "% / "+(list[i].peakSeasonDiscountRate*100)+ "%</td>";
+						data += "<td>" + list[i].introContent + "</td>";
+						data += "<td>" + list[i].startingDate+ "~" +list[i].endingDate;+ "</td>";
+						data += "<td>" + list[i].registeredDate; + "</td>";
+						data += "</tr>";
+					}
+					$("#dataSection2").html(data);
+
+					// 이전버튼 활성화 여부를 결정하는 부분
+					if (pagination['prevPage']) {
+						block += "<li class='page-item'><a class='page-link' onclick='searchActDiscountPromotions("
+								+ (pagination['beginPage'] - 1)
+								+ ")'> < </a></li>";
+					} else {
+						block += "<li class='page-item disabled'><a class='page-link'> < </a></li>";
+					}
+
+					// 번호를 표시하는 부분
+					for (var i = pagination['beginPage']; i <= pagination['endPage']; i++) {
+						if (page !== i) {
+							block += "<li class='page-item'><a class='page-link' onclick='searchActDiscountPromotions("
+									+ i + ")'>" + (i) + "</a></li>";
+						} else {
+							block += "<li class='page-item disabled'><a class='page-link'>"
+									+ (i) + "</a></li>";
+						}
+					}
+
+					if (pagination['nextPage']) {
+						block += "<li class='page-item'><a class='page-link' onclick='searchActDiscountPromotions("
+								+ (pagination['endPage'] + 1)
+								+ ")'>  > </a></li>";
+					} else {
+						block += "<li class='page-item disabled'><a class='page-link'> > </a></li>";
+					}
+					
+					$("#paginationBox2").html(block);
+				}
+			})
+}
+function searchActOfferPromotions(page) {
+	var opt = $("select[name=opt3]").val();
+	var value = $.trim($(":input[name=value3]").val());
+	var order =  $("select[name=order3]").val();
+	
+			$.ajax({
+				type: 'POST',
+				url : "/admin/searchActOfferPromotions.do", //서비스 주소 
+				data : { //서비스 처리에 필요한 인자값
+					page : page,
+					opt : opt,
+					value : value,
+					order : order
+				},
+				success : function(result) {
+					const list = result['list'];
+					const pagination = result['pagination'];
+					var data = "";
+					var block = "";
+
+					console.log(pagination);
+					console.log(list);
+					// 테이블의 row를 삽입하는 부분
+					for (var i = 0; i < list.length; i++) {
+						data += "<tr>";
+						data += "<td>" + list[i].no + "</td>";
+						data += "<td>" + list[i].activityNo + "</td>";
+						data += "<td>" + list[i].activityName + "</td>";
+						data += "<td>" + list[i].offerContent+ "</td>";
+						data += "<td>" + list[i].introContent + "</td>";
+						data += "<td>" + list[i].startingDate+ "~" +list[i].endingDate;+ "</td>";
+						data += "<td>" + list[i].registeredDate; + "</td>";
+						data += "</tr>";
+					}
+					$("#dataSection3").html(data);
+
+					// 이전버튼 활성화 여부를 결정하는 부분
+					if (pagination['prevPage']) {
+						block += "<li class='page-item'><a class='page-link' onclick='searchActOfferPromotions("
+								+ (pagination['beginPage'] - 1)
+								+ ")'> < </a></li>";
+					} else {
+						block += "<li class='page-item disabled'><a class='page-link'> < </a></li>";
+					}
+
+					// 번호를 표시하는 부분
+					for (var i = pagination['beginPage']; i <= pagination['endPage']; i++) {
+						if (page !== i) {
+							block += "<li class='page-item'><a class='page-link' onclick='searchActOfferPromotions("
+									+ i + ")'>" + (i) + "</a></li>";
+						} else {
+							block += "<li class='page-item disabled'><a class='page-link'>"
+									+ (i) + "</a></li>";
+						}
+					}
+
+					if (pagination['nextPage']) {
+						block += "<li class='page-item'><a class='page-link' onclick='searchActOfferPromotions("
+								+ (pagination['endPage'] + 1)
+								+ ")'>  > </a></li>";
+					} else {
+						block += "<li class='page-item disabled'><a class='page-link'> > </a></li>";
+					}
+					
+					$("#paginationBox3").html(block);
+				}
+			})
+}
+
+</script>

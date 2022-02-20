@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE tiles-definitions PUBLIC
+       "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN"
+       "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+
+<tiles-definitions>
+
+   <!-- main -->
+   <definition name="layout-tiles" template="/WEB-INF/tiles/common/base-layout.jsp">
+       <put-attribute name="header" value="/WEB-INF/tiles/common/header.jsp" />
+       <put-attribute name="body" value="" />
+       <put-attribute name="footer" value="/WEB-INF/tiles/common/footer.jsp" />
+   </definition>
+  
+   <definition name="*.tiles" extends="layout-tiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}.jsp" />
+   </definition>
+   
+   <definition name="*/*.tiles" extends="layout-tiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}/{2}.jsp" />
+   </definition>
+   
+   <definition name="*/*/*.tiles" extends="layout-tiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}/{2}/{3}.jsp" />
+   </definition>
+
+   <!-- admin -->
+   <definition name="layout-admintiles" template="/WEB-INF/tiles/adminmgt/base-layout.jsp">
+       <put-attribute name="header" value="/WEB-INF/tiles/adminmgt/header.jsp" />
+       <put-attribute name="body" value="" />
+       <put-attribute name="footer" value="/WEB-INF/tiles/common/footer.jsp" />
+   </definition>
+   
+   <definition name="*.admintiles" extends="layout-admintiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}.jsp" />
+   </definition>
+   <definition name="*/*.admintiles" extends="layout-admintiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}/{2}.jsp" />
+   </definition>
+   <definition name="*/*/*.admintiles" extends="layout-admintiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}/{2}/{3}.jsp" />
+   </definition>
+   
+   <!-- host -->
+   <definition name="layout-hosttiles" template="/WEB-INF/tiles/hostmgt/base-layout.jsp">
+       <put-attribute name="header" value="/WEB-INF/tiles/hostmgt/header.jsp" />
+       <put-attribute name="body" value="" />
+       <put-attribute name="footer" value="/WEB-INF/tiles/common/footer.jsp" />
+   </definition>
+  
+   <definition name="*.hosttiles" extends="layout-hosttiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}.jsp" />
+   </definition>
+   
+   <definition name="*/*.hosttiles" extends="layout-hosttiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}/{2}.jsp" />
+   </definition>
+   
+   <definition name="*/*/*.hosttiles" extends="layout-hosttiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}/{2}/{3}.jsp" />
+   </definition>
+   
+   <!-- mypage -->
+   <definition name="layout-mytiles" template="/WEB-INF/tiles/mypagemgt/base-layout.jsp">
+       <put-attribute name="header" value="/WEB-INF/tiles/common/header.jsp" />
+       <put-attribute name="myHeader" value="/WEB-INF/tiles/mypagemgt/myHeader.jsp" />
+       <put-attribute name="sideNav" value="/WEB-INF/tiles/mypagemgt/sideNav.jsp" />
+       <put-attribute name="body" value="" />
+       <put-attribute name="footer" value="/WEB-INF/tiles/common/footer.jsp" />
+   </definition>
+  
+   <definition name="*.mytiles" extends="layout-mytiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}.jsp" />
+   </definition>
+   
+   <definition name="*/*.mytiles" extends="layout-mytiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}/{2}.jsp" />
+   </definition>
+   
+   <definition name="*/*/*.mytiles" extends="layout-mytiles">
+       <put-attribute name="body" value="/WEB-INF/views/{1}/{2}/{3}.jsp" />
+   </definition>
+  
+</tiles-definitions>

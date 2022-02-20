@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.ChatRoomMapper">
+	
+	
+	
+	<!-- 성하민
+		void updateMessages(@Param("chatRoomNo") int chatRoomNo, @Param("userNo") int userNo);
+	-->
+	<update id="updateMessages" parameterType="int">
+		update tb_final_messages
+		set message_checked = 'Y'
+		where message_checked = 'N'
+		and chatroom_no = #{chatRoomNo}
+		and sender_no != #{userNo}
+	</update>
+	
+	<!-- 성하민
+		void updateChatRoom(ChatRoom chatRoom);
+	-->
+		<update id="updateChatRoom" parameterType="com.hoge.vo.other.ChatRoom">
+		update TB_FINAL_CHATROOMS
+		set
+			UPDATED_DATE = sysdate,
+			LAST_MESSAGE = #{lastMessage},
+			user_unread_count = #{userUnreadCount},
+			host_unread_count = #{hostUnreadCount}
+		where
+			CHATROOM_NO = #{no}
+	</update>
+	
+		<update id="updateChatRoomCount" parameterType="com.hoge.vo.other.ChatRoom">
+		update TB_FINAL_CHATROOMS
+		set
+			user_unread_count = #{userUnreadCount},
+			host_unread_count = #{hostUnreadCount}
+		where
+			CHATROOM_NO = #{no}
+	</update>
+	
+	
+	
+	
+	
+	<!-- 성하민
+void insertChatRoom(ChatRoom chatRoom);  
+	-->
+  	<insert id="insertChatRoom" parameterType="com.hoge.vo.other.ChatRoom">
+		INSERT into TB_FINAL_CHATROOMS
+		(
+		CHATROOM_NO,
+		HOST_NO,
+		USER_NO,
+		UPDATED_DATE
+		)
+		VALUES
+			(FINAL_CHATROOM_NO_SEQ.NEXTVAL,
+			#{hostNo},
+			#{userNo},
+			sysdate
+			)
+	</insert>
+	
+	<!-- 성하민
+  	void insertMessage(Message message);
+  	-->
+  	<insert id="insertMessage" parameterType="com.hoge.vo.other.Message">
+		INSERT into TB_FINAL_messages
+		(
+		CHATROOM_NO,
+		SENDER_NO,
+		MESSAGE_CONTENT
+		)
+		VALUES
+			(#{chatRoomNo},
+			#{sendingUserNo},
+			#{content}
+			)
+	</insert>
+	
+	
+
+	<!-- 	List<ChattingListDto> getChattingListDtobyHostNo(int no); // 호스트번호로 채팅목록 조회 -->
+	<select id="getChattingListDtobyHostNo" parameterType="int" resultType="com.hoge.dto.ChattingListDto">
+	select c.last_message as lastMessage,
+		 c.updated_date as updatedDate, 
+		 c.chatroom_no as chatRoomNo, 
+		 c.host_no as hostNo, 
+		 c.user_no as userNo,
+    	u.user_name as name, 
+    	u.user_image as image,
+    	c.host_unread_count as unreadCount
+    from TB_FINAL_CHATROOMS c, TB_FINAL_USERS u
+    where c.user_no = u.user_no
+    and host_no = #{no}
+	</select>
+
+	
+	<!-- 	List<ChattingListDto> getChattingListDtobyHostNo(int no); // 유저번호로 채팅목록 조회 -->
+	<select id="getChattingListDtobyUserNo" parameterType="int" resultType="com.hoge.dto.ChattingListDto">
+	select c.last_message as lastMessage,
+		 c.last_message_sender_no as lastMessageSenderNo,
+		 c.last_message_checked as lastMessageChecked,
+		 c.updated_date as updatedDate, 
+		 c.chatroom_no as chatRoomNo, 
+		 c.host_no as hostNo, 
+		 c.user_no as userNo,
+    	h.host_name as name, 
+    	h.hosting_type as hostingType,
+    	h.HOST_MAIN_IMAGE as image,
+    	c.user_unread_count as unreadCount
+    from TB_FINAL_CHATROOMS c, TB_FINAL_USERS u, TB_FINAL_hosts h
+    where c.host_no = h.host_no
+    and h.host_user_no = u.user_no
+    and c.user_no = #{no}
+	</select>
+	
+
+		
+		
+	
+	 <!-- 성하민
+	List<ChattingMessageDto> getMessagesByChatRoomNo(int no); // chatroom번호로 메시지와 유저정보 조회.
+	-->
+	 <select id="getMessagesByChatRoomNo" parameterType="int" resultType="com.hoge.dto.ChattingMessageDto">
+	 	select
+	 		c.chatroom_no as chatRoomNo,
+	 		c.host_no as hostNo,
+	 		h.host_name as hostName,
+	 		h.host_user_no as hostingUserNo,
+	 		h.hosting_type as hostingType,
+	 		h.host_main_image as hostImage,
+	 		h.host_tel as tel,
+	 		h.grade_name as gradeName,
+	 		m.SENDER_NO as sendingUserNo,
+	 		u.user_name as sendingUserName,
+	 		u.USER_IMAGE as sendingUserImage,
+	 		m.MESSAGE_CONTENT as content,
+	 		m.MESSAGE_CHECKED as checked,
+	 		m.MESSAGE_SENDING_DATE as sendingDate
+	 	from
+	 		tb_final_hosts h, TB_FINAL_CHATROOMS c, TB_FINAL_MESSAGES m, TB_FINAL_USERS u
+	 	where c.chatroom_no = #{no} 
+	 	and c.chatroom_no = m.chatroom_no
+	 	and c.host_no = h.host_no
+	 	and m.sender_no = u.user_no
+	 	order by
+	 		m.MESSAGE_SENDING_DATE asc	
+	 </select>
+	 
+	 <!-- 성하민
+	ChatRoom getChatRoomByChatRoomNo(int no);
+	-->
+	<select id="getChatRoomByChatRoomNo" parameterType="int" resultType="com.hoge.vo.other.ChatRoom">
+	 	select
+	 		chatroom_no as no,
+	 		host_no as hostNo,
+	 		user_no as userNo,
+	 		updated_date as updatedDate, 	
+	 		last_message as lastMessage,
+	 		user_unread_count as userUnreadCount,
+			host_unread_count as hostUnreadCount
+	 	from
+	 		TB_FINAL_CHATROOMS
+	 	where chatroom_no = #{no} 
+	 </select>
+	 
+	
+	
+	 <!-- 성하민
+		List<ChatRoom> getChatRoomsbyHostNo(int no);
+	 -->
+	  <select id="getChatRoomsbyHostNo" parameterType="int" resultType="com.hoge.vo.other.ChatRoom">
+	 	select
+	 		chatroom_no as no,
+	 		host_no as hostNo,
+	 		user_no as userNo,
+	 		updated_date as updatedDate 	
+	 	from
+	 		TB_FINAL_CHATROOMS
+	 	where host_no = #{no} 
+	 	order by
+	 		updated_date desc
+	 </select>
+	 
+	 
+	 
+	 <!-- 성하민
+		List<ChatRoom> getChatRoomsbyUserNo(int no);
+	 -->
+	 <select id="getChatRoomsbyUserNo" parameterType="int" resultType="com.hoge.vo.other.ChatRoom">
+	 	select
+	 		chatroom_no as no,
+	 		host_no as hostNo,
+	 		user_no as userNo,
+	 		updated_date as updatedDate 	
+	 	from
+	 		TB_FINAL_CHATROOMS
+	 	where user_no =  #{no} 
+	 	order by
+	 		updated_date desc
+	 </select>
+	
+	 
+</mapper>

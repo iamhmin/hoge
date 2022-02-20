@@ -1,0 +1,244 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.StatisticsMapper">
+  
+	
+   <!--  long getCancelAmountThisMonth();//이번달 결제취소 금액-->
+   <select id="getCancelAmountThisMonth" resultType="_long">
+   SELECT sum(transaction_amount)
+	FROM TB_FINAL_TRANSACTIONS 
+	where TO_CHAR(transaction_DATE, 'YYYY-MM') = to_char(sysdate, 'YYYY-MM')
+	and transaction_type = 3
+	group by TO_CHAR(transaction_DATE, 'YYYY-MM')
+   </select>
+   
+   <!--  long getDepositAmountThisMonth();//이번달 입금액 -->
+   <select id="getDepositAmountThisMonth" resultType="_long">
+    SELECT sum(transaction_amount)
+	FROM TB_FINAL_TRANSACTIONS 
+	where TO_CHAR(transaction_DATE, 'YYYY-MM') = to_char(sysdate, 'YYYY-MM')
+	and transaction_type = 1
+	group by TO_CHAR(transaction_DATE, 'YYYY-MM')
+   </select>
+   
+   <!--  long getWithdrawalAmountThisMonth();//이번달 호스트 출금액 -->
+   <select id="getWithdrawalAmountThisMonth" resultType="_long">
+    SELECT sum(transaction_amount)
+	FROM TB_FINAL_TRANSACTIONS 
+	where TO_CHAR(transaction_DATE, 'YYYY-MM') = to_char(sysdate, 'YYYY-MM')
+	and transaction_type = 2
+	group by TO_CHAR(transaction_DATE, 'YYYY-MM')
+   </select>
+   
+   
+   
+   
+   <!--  int getTodayJoinCount();//오늘 가입한 회원수 -->
+   <select id="getTodayJoinCount" resultType="int">
+   select count(*)
+	from tb_final_users
+	where USER_REGISTERED_DATE &gt;= trunc(sysdate)
+   </select>
+   
+   <!-- int getTodayLeftCount();//오늘 탈퇴한 회원수 -->
+   <select id="getTodayLeftCount" resultType="int">
+   select count(*)
+	from tb_final_users
+	where USER_UPDATED_DATE &gt;= trunc(sysdate)
+   </select>
+   
+   
+   
+   <!-- int getTodayAccommoReviewCount(); //오늘 숙소리뷰 카운트 -->
+   <select id="getTodayAccommoReviewCount" resultType="int">
+     select count(*)
+	from TB_FINAL_ACCOMMO_REVIEWS
+	where REVIEW_CREATED_DATE &gt;= trunc(sysdate)
+   </select>
+   
+   <!-- int getTodayActivityReviewCount(); //오늘 체험리뷰 카운트 -->
+   <select id="getTodayActivityReviewCount" resultType="int">
+    select count(*)
+	from TB_FINAL_ACCOMMO_REVIEWS
+	where REVIEW_CREATED_DATE &gt;= trunc(sysdate)
+   </select>
+   
+   <!-- int getNotAnsweredUserQna(); 답변미완료된 유저질문 -->
+   <select id="getNotAnsweredUserQna" resultType="int">
+   select count(*)
+	from TB_FINAL_USER_QNAS
+	WHERE QUESTION_ANSWERED = 'N'
+   </select>
+   
+   
+   <!-- int getNotAnsweredHostQna(); 답변미완료된 호스트질문 -->
+   <select id="getNotAnsweredHostQna" resultType="int">
+   select count(*)
+	from TB_FINAL_HOST_QNAS
+	WHERE QUESTION_ANSWERED = 'N'
+   </select>
+   
+   <!-- int getTodayTransactionCount(); 오늘 거래-->
+   <select id="getTodayTransactionCount" resultType="int">
+     select count(*)
+	from TB_FINAL_TRANSACTIONS
+	where TRANSACTION_DATE &gt;= trunc(sysdate)
+	and TRANSACTION_TYPE = 1
+   </select>
+   
+   <!-- int getTodayCancelTransactionCount(); 오늘 결제취소-->
+   <select id="getTodayCancelTransactionCount" resultType="int">
+    select count(*)
+	from TB_FINAL_TRANSACTIONS
+	where TRANSACTION_DATE &gt;= trunc(sysdate)
+	and TRANSACTION_TYPE = 3
+   </select>
+   
+   <!-- int getAccommoWaitingCount(); 숙소대기리스트-->
+   <select id="getAccommoWaitingCount" resultType="int">
+   select count(*)
+	from TB_FINAL_HOSTS
+	where STATUS = 'W'
+	and HOSTING_TYPE = 1
+   </select>
+   
+   <!-- int getActivityWaitingCount(); 체험대기리스트-->
+   <select id="getActivityWaitingCount" resultType="int">
+   select count(*)
+	from TB_FINAL_HOSTS
+	where STATUS = 'W'
+	and HOSTING_TYPE = 2
+   </select>
+   
+   <!-- int getDiscountPromotionWaitingCount(); 프로모션대기리스트-->
+   <select id="getDiscountPromotionWaitingCount" resultType="int">
+   select count(*)
+	from TB_FINAL_DISCOUNT_PROMOTIONS
+	where STATUS = 'W'
+   </select>
+   
+   <!-- int getOfferPromotionWaitingCount(); 프로모션대기리스트-->
+   <select id="getOfferPromotionWaitingCount" resultType="int">
+      select count(*)
+	from TB_FINAL_OFFER_PROMOTIONS
+	where STATUS = 'W'
+   </select>
+   
+   
+   
+                
+
+
+
+	
+  <!-- List<LabelDataDto> getRegisterCountPerDayDto(); -->
+  <select id="getRegisterCountPerDayDto" resultType="com.hoge.dto.LabelDataDto">
+		  SELECT 
+		  		SUBSTR(B.TODAY,-4) AS label, 
+		  		NVL(SUM(a.NEW_USERS), 0) as data
+		FROM (SELECT TO_CHAR(USER_REGISTERED_DATE, 'YYYYMMDD') AS REGISTER_DATE,
+		COUNT(*) AS NEW_USERS
+		FROM TB_FINAL_USERS
+		GROUP BY TO_CHAR(USER_REGISTERED_DATE, 'YYYYMMDD')) A
+		, (SELECT
+		TO_CHAR (FIRST_DAY + LEVEL -1, 'YYYYMMDD') TODAY
+		FROM (SELECT TRUNC(SYSDATE - 20) FIRST_DAY FROM DUAL)
+		CONNECT BY FIRST_DAY + LEVEL - 1 &lt;= TRUNC(SYSDATE)
+		) B
+		WHERE B.TODAY = A.REGISTER_DATE(+)
+		GROUP BY B.TODAY
+		ORDER BY B.TODAY
+  </select>
+  
+  
+  
+  <!-- List<LabelDataDto> getSalesPerDayByHostNo(int no)-->
+  <select id="getSalesPerDayByHostNo" parameterType="int" resultType="com.hoge.dto.LabelDataDto">
+		   
+      SELECT SUBSTR(B.TODAY,-4) AS label, NVL(SUM(a.TRANSACTION_AMOUNT), 0) as data
+		FROM (SELECT TO_CHAR(TRANSACTION_DATE, 'YYYYMMDD') AS TRANSACTION_DATE,
+		SUM(TRANSACTION_AMOUNT) AS TRANSACTION_AMOUNT
+		FROM TB_FINAL_HOST_TRANSACTIONS
+		where HOST_NO = #{no}
+        AND TRANSACTION_TYPE=1
+		GROUP BY TO_CHAR(TRANSACTION_DATE, 'YYYYMMDD')) A
+		, (SELECT
+		TO_CHAR (FIRST_DAY + LEVEL -1, 'YYYYMMDD') TODAY
+		FROM (SELECT TRUNC(SYSDATE - 20) FIRST_DAY FROM DUAL)
+		CONNECT BY FIRST_DAY + LEVEL - 1 &lt;= TRUNC(SYSDATE)
+		) B
+		WHERE B.TODAY = A.TRANSACTION_DATE(+)
+		GROUP BY B.TODAY
+		ORDER BY B.TODAY
+    
+    
+  </select>
+  
+  <!-- List<LabelDataDto> getTransactionAmountPerDay();-->
+  <select id="getTransactionAmountPerDay" parameterType="int" resultType="com.hoge.dto.LabelDataDto">
+		   
+     SELECT SUBSTR(B.TODAY,-4) AS label, NVL(SUM(a.TRANSACTION_AMOUNT), 0) as data
+		FROM (SELECT TO_CHAR(TRANSACTION_DATE, 'YYYYMMDD') AS TRANSACTION_DATE,
+		SUM(TRANSACTION_AMOUNT) AS TRANSACTION_AMOUNT
+		FROM TB_FINAL_TRANSACTIONS
+        where TRANSACTION_TYPE=1
+		GROUP BY TO_CHAR(TRANSACTION_DATE, 'YYYYMMDD')) A
+		, (SELECT
+		TO_CHAR (FIRST_DAY + LEVEL -1, 'YYYYMMDD') TODAY
+		FROM (SELECT TRUNC(SYSDATE - 15) FIRST_DAY FROM DUAL)
+		CONNECT BY FIRST_DAY + LEVEL - 1 &lt;= TRUNC(SYSDATE)
+		) B
+		WHERE B.TODAY = A.TRANSACTION_DATE(+)
+		GROUP BY B.TODAY
+		ORDER BY B.TODAY
+    
+    
+  </select>
+  
+  
+  <!-- List<LabelDataDto> getProfitAmountPerMonth();-->
+  <select id="getProfitAmountPerMonth" parameterType="int" resultType="com.hoge.dto.LabelDataDto">
+		   
+    select a.label as label, nvl(a.data - b.data,0) as data
+      from 
+      (SELECT SUBSTR(B.TODAY,-5) AS label, NVL(SUM(a.TRANSACTION_AMOUNT), 0) as data
+		FROM (SELECT TO_CHAR(TRANSACTION_DATE, 'YYYY/MM') AS TRANSACTION_DATE,
+		SUM(TRANSACTION_AMOUNT) AS TRANSACTION_AMOUNT
+		FROM TB_FINAL_TRANSACTIONS
+		WHERE TO_CHAR(TRANSACTION_DATE, 'YYYY/MM') &lt;= TO_CHAR(SYSDATE, 'YYYY/MM')
+        AND TRANSACTION_TYPE=1
+		GROUP BY TO_CHAR(TRANSACTION_DATE, 'YYYY/MM')) A
+        ,(SELECT
+		TO_CHAR (FIRST_DAY + LEVEL -1, 'YYYY/MM') TODAY
+		FROM (SELECT TRUNC(SYSDATE - 360) FIRST_DAY FROM DUAL)
+		CONNECT BY FIRST_DAY + LEVEL - 1 &lt;= TRUNC(SYSDATE)
+        GROUP BY TO_CHAR (FIRST_DAY + LEVEL -1, 'YYYY/MM')
+        ORDER BY TODAY ASC
+		) B
+		WHERE B.TODAY = A.TRANSACTION_DATE(+)
+		GROUP BY B.TODAY
+		ORDER BY B.TODAy) a ,
+     (SELECT SUBSTR(B.TODAY,-5) AS label, NVL(SUM(c.TRANSACTION_WITHDRAWAL_AMOUNT), 0) as data
+		FROM (SELECT TO_CHAR(TRANSACTION_DATE, 'YYYY/MM') AS TRANSACTION_DATE,
+		SUM(TRANSACTION_AMOUNT) AS TRANSACTION_WITHDRAWAL_AMOUNT
+		FROM TB_FINAL_TRANSACTIONS
+		WHERE TO_CHAR(TRANSACTION_DATE, 'YYYY/MM') &lt;= TO_CHAR(SYSDATE, 'YYYY/MM')
+        AND TRANSACTION_TYPE IN (2,3)
+		GROUP BY TO_CHAR(TRANSACTION_DATE, 'YYYY/MM')) C
+        ,(SELECT
+		TO_CHAR (FIRST_DAY + LEVEL -1, 'YYYY/MM') TODAY
+		FROM (SELECT TRUNC(SYSDATE - 360) FIRST_DAY FROM DUAL)
+		CONNECT BY FIRST_DAY + LEVEL - 1 &lt;= TRUNC(SYSDATE)
+        GROUP BY TO_CHAR (FIRST_DAY + LEVEL -1, 'YYYY/MM')
+        ORDER BY TODAY ASC
+		) B
+		WHERE B.TODAY = c.TRANSACTION_DATE(+)
+		GROUP BY B.TODAY
+		ORDER BY B.TODAy) b
+        where a.label = b.label
+    
+  </select>
+  
+  
+
+</mapper>

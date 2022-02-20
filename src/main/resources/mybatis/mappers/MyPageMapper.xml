@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.MyPageMapper">
+	<select id="getMyTourListAccommoDtos" parameterType="int" resultType="com.hoge.dto.MyTourListDto">
+		select 
+			a.accommo_name as name,
+			r.room_name as roomName,
+			b.check_in_date as checkIn,
+			b.check_out_date as checkOut,
+			b.room_paid_price as price,
+			a.accommo_xce as xce,
+			a.accommo_yce as yce,
+			a.accommo_no as no
+		from
+			(select 
+				b1.check_in_date,
+                b1.check_out_date,
+                b1.room_paid_price,
+                b1.room_no
+			from 
+				tb_final_room_bookings b1,
+                tb_final_rooms r1
+			where 
+                r1.room_no = b1.room_no
+				and (r1.accommo_no, check_out_date) 
+				in (
+					select 
+						accommo_no, max(check_out_date) keep(DENSE_RANK LAST ORDER by booking_made_date) check_out_date
+					from 
+						tb_final_room_bookings b2,
+                        tb_final_rooms r2
+					where 
+                        r2.room_no = b2.room_no
+						and user_no = #{value}
+						and room_booking_status = 0
+					group by accommo_no)) b,
+			tb_final_rooms r,
+			tb_final_accommodations a
+		where 
+			b.room_no = r.room_no
+			and a.accommo_no = r.accommo_no
+	</select>
+	<select id="getMyTourListActivities" parameterType="int" resultType="com.hoge.dto.MyTourListDto">
+		select 
+			a.activity_no as no,
+			a.activity_name as name,
+			t.activity_time as checkIn,
+			b.activity_paid_price as price,
+			a.activity_xce as xce,
+			a.activity_yce as yce
+		from
+			(select 
+				*
+			from
+				tb_final_activity_bookings
+			where
+				user_no = #{value}
+				and activity_booking_status = 0) b,
+			tb_final_activity_times t,
+			tb_final_activities a
+		where 
+			b.activity_time_no = t.activity_time_no
+			and t.activity_no = a.activity_no
+	</select>
+</mapper>

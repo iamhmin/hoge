@@ -1,0 +1,999 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.AccommodationMapper">
+	<!-- 염주환, 이승준:검색기능 추가-->
+	<select id="searchAccommoListDtos" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.AccommoListDto">
+		select *
+		from
+			(select
+		    		row_number() over (order by a.accommo_no) rn,
+					a.accommo_no as no, 
+					a.host_no as hostNo, 
+					a.accommo_type as type, 
+					a.accommo_name as name, 
+					a.average_cleanliness_star as cleanlinessStar,
+					a.average_communication_star as communicationStar, 
+					a.average_accuracy_star as accuracyStar, 
+					a.average_location_star as locationStar,
+					a.accommo_address as address, 
+					a.accommo_region_depth1 as regionDepth1, 
+					a.accommo_region_depth2 as regionDepth2, 
+					a.accommo_region_depth3 as regionDepth3, 
+					a.accommo_xce as xce, 
+					a.accommo_yce as yce,
+		            min(r.weekdays_price) as minWeekdaysPrice,
+					max(r.weekdays_price) as maxWeekdaysPrice,
+		            min(r.weekend_price) as minWeekendPrice,
+					max(r.weekend_price) as maxWeekendPrice,
+		            min(r.peak_season_price) as minPeakSeasonPrice,
+					max(r.peak_season_price) as maxPeakSeasonPrice,
+		            min(r.standard_number) as minNumber,
+					max(r.maximum_number) as maxNumber
+				from
+		            tb_final_accommodations a,
+		            tb_final_rooms r
+		        where a.accommo_no = r.accommo_no
+			    	<if test="opt1 == 'address' and addressValue != ''">
+                       and a.accommo_address like '%' || #{addressValue} || '%'
+                    </if>
+                    <if test="opt2 == 'checkInBox' and checkInBoxValue != '' and opt3 == 'checkOutBox' and checkOutBoxValue !=''">
+                       and r.room_no NOT IN (select 
+                       							bk.room_no
+                                        	 from 
+                                        	 	tb_final_room_availability ava, tb_final_room_bookings bk
+                                       		 where 
+                                       		 	ava.room_booking_no = bk.room_booking_no
+                                       		 and 
+                                       		 	booked_date &gt;= #{checkInBoxValue}
+                                        	 and 
+                                        	 	booked_date &lt; #{checkOutBoxValue}
+                                        	 group 
+                                        	 	by bk.room_no)
+                    </if>
+                    <if test="opt4 == 'maxStandardNumber' and maxStandardNumberValue != ''">
+                       and r.maximum_number &gt;= to_number(#{maxStandardNumberValue})
+                    </if>
+		        group by 
+		            a.accommo_no, a.host_no, a.accommo_type, a.accommo_name, a.average_cleanliness_star, a.average_communication_star, 
+		            a.average_accuracy_star, a.average_location_star, a.accommo_region_depth1, a.accommo_region_depth2, 
+		            a.accommo_region_depth3, a.accommo_xce, a.accommo_yce,a.accommo_address)
+		where rn between #{beginIndex} and #{endIndex}
+	</select>
+	
+	<!-- 염주환(검색 기능 추가 해야함) -->
+	<select id="getAccommodationsTotalRows" parameterType="com.hoge.form.Criteria" resultType="int">
+		select 
+			count(*)
+		from (select
+				a.accommo_no as no
+      		  from
+              	tb_final_accommodations a,
+              	tb_final_rooms r
+              where 
+              	a.accommo_no = r.accommo_no
+	    	<if test="opt1 == 'address' and addressValue != ''">
+              and 
+               	a.accommo_address like '%' || #{addressValue} || '%'
+            </if>
+            <if test="opt2 == 'checkInBox' and checkInBoxValue != '' and opt3 == 'checkOutBox' and checkOutBoxValue !=''">
+              and 
+               	r.room_no NOT IN (select 
+               							bk.room_no
+                                	 from 
+                                	 	tb_final_room_availability ava, tb_final_room_bookings bk
+                               		 where 
+                               		 	ava.room_booking_no = bk.room_booking_no
+                               		 and 
+                               		 	booked_date &gt;= #{checkInBoxValue}
+                                	 and 
+                                	 	booked_date &lt; #{checkOutBoxValue}
+                                	 group 
+                                	 	by bk.room_no)
+            </if>
+            <if test="opt4 == 'maxStandardNumber' and maxStandardNumberValue != ''">
+               and 
+               	r.maximum_number &gt;= to_number(#{maxStandardNumberValue})
+            </if>
+            group by 
+		            a.accommo_no)
+	</select>
+
+	<!-- 염주환 -->
+	<select id="getAccommoImagesByAccommoNo" parameterType="int" resultType="com.hoge.vo.accommo.AccommoImage">
+		select
+			accommo_image as image,
+			accommo_no as accommoNo
+		from
+			tb_final_accommo_images
+		where
+			accommo_no = #{value}
+	</select>
+	
+	<!-- 염주환 -->
+	<select id="getAccommodationByNo" parameterType="int" resultType="com.hoge.vo.accommo.Accommodation">
+		select
+			accommo_no as no, 
+			host_no as hostNo, 
+			accommo_type as type, 
+			accommo_name as name, 
+			accommo_intro_title as introTitle,
+			accommo_intro_content as introContent,
+			accommo_web_address as webAddress,
+			accommo_check_in_time as checkInTime,
+			accommo_check_out_time as checkOutime,
+			average_cleanliness_star as cleanlinessStar,
+			average_communication_star as communicationStar, 
+			average_accuracy_star as accuracyStar, 
+			average_location_star as locationStar, 
+			accommo_address as address,
+			accommo_region_depth1 as regionDepth1, 
+			accommo_region_depth2 as regionDepth2, 
+			accommo_region_depth3 as regionDepth3, 
+			accommo_xce as xce, 
+			accommo_yce as yce,
+			accommo_registered_date as registeredDate
+		from
+            tb_final_accommodations 
+        where
+        	accommo_no = #{value}
+	</select>
+	
+	<!-- 염주환 -->
+	<select id="getRoomByNo" parameterType="int" resultType="com.hoge.vo.accommo.Room">
+		select
+			room_no as no,
+			accommo_no as accommoNo,
+			room_name as name,
+			weekdays_price as weekdaysPrice,
+			weekend_price as weekendPrice,
+			peak_season_price as peakSeasonPrice,
+			standard_number as standardNumber,
+			maximum_number as maximumNumber,
+			price_per_person as pricePerPerson,
+			room_amenity as amenity,
+			room_feature as feature
+		from
+			tb_final_rooms
+		where
+			room_no = #{value}
+	</select>
+	
+	<!-- 염주환 -->
+	<select id="getReserveAccommoDto" resultType="com.hoge.dto.ReserveAccommoDto">
+		select 
+			a.accommo_no as no,
+			a.host_no as hostNo,
+			a.accommo_name as accommoName,
+			r.room_no as roomNo,
+			r.room_name as roomName,
+			r.standard_number as standardNumber,
+			r.maximum_number as maximumNumber
+		from 
+			tb_final_accommodations a,
+			tb_final_rooms r
+		where 
+			a.accommo_no = r.accommo_no
+			and a.accommo_no = #{accommoNo}
+			and r.room_no = #{roomNo}
+	</select>
+
+	<!-- 염주환 -->
+	<select id="getRoomBookingNoSeq" resultType="int">
+		select final_room_booking_no_seq.nextval
+		from dual
+	</select>
+	
+	<!-- 염주환 -->
+	<insert id="insertRoomBooking" parameterType="com.hoge.vo.accommo.RoomBooking">
+		insert into tb_final_room_bookings
+			(room_booking_no, room_no, user_no, check_in_date, check_out_date, room_booking_status, 
+			room_payment, room_tax_included_price, room_used_pnt, room_paid_price, room_booking_name,
+			room_booking_tel, room_extra_people, tid)
+		values
+			(#{no}, #{roomBooking.roomNo}, #{userNo}, #{roomBooking.checkInDate}, #{roomBooking.checkOutDate}, 1, #{roomBooking.payment}, #{roomBooking.taxIncludedPrice}, #{roomBooking.usedPnt},
+			#{roomBooking.paidPrice}, #{roomBooking.roomUserName}, #{roomBooking.roomUserTel}, #{roomBooking.extraPeople}, #{tid})
+	</insert>
+	
+	<!-- 염주환 -->
+	<insert id="insertRoomAvailability">
+		insert into tb_final_room_availability
+			(booked_date, room_booking_no)
+		values
+			(#{sqlDate}, #{no})
+	</insert>
+	
+	<!-- 염주환 -->
+	<select id="getAccumulatedMoney" resultType="long">
+		select accumulated_money
+		from (
+    		select rownum, accumulated_money
+			from tb_final_transactions
+        	order by transaction_no desc)
+		where rownum=1
+	</select>
+	
+	<!-- 염주환 -->
+	<insert id="insertTransactions">
+		<selectKey keyProperty="transactionNo" resultType="int" order="BEFORE">
+			select final_transaction_no_seq.nextval
+			from dual
+		</selectKey>
+		insert into tb_final_transactions
+			(transaction_no, transaction_type, transaction_amount, room_booking_no, accumulated_money)
+		values
+			(#{transactionNo}, 1, #{amount}, #{no}, #{accumulated})
+	</insert>
+	
+	<!-- 유상효 객실 등록하기 -->
+	<insert id="insertRoom" parameterType="com.hoge.vo.accommo.Room">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+			select final_room_no_seq.nextval
+			from dual
+		</selectKey>
+		insert into tb_final_rooms
+		(
+		room_no,
+		accommo_no,
+		room_name,
+		weekdays_price,
+		weekend_price,
+		peak_season_price,
+		standard_number,
+		maximum_number,
+		price_per_person,
+		room_amenity,
+		room_feature		
+		)
+		values
+			(
+			#{no},
+			#{accommoNo},
+			#{name},
+			#{weekdaysPrice},
+			#{weekendPrice},
+			#{peakSeasonPrice},
+			#{standardNumber},
+			#{maximumNumber},
+			#{pricePerPerson},
+			#{amenity},
+			#{feature}
+			)
+	</insert>
+	
+	<!-- 유상효 객실 사진 저장 -->
+	<insert id="insertRoomImage" parameterType="com.hoge.vo.accommo.RoomImage">
+		insert into tb_final_room_images
+		(
+		room_image,
+		room_no
+		)
+		values
+			(
+			#{image},
+			#{roomNo}
+			)
+	</insert>
+	
+	<!--  유상효 accNo로 객실리스트 가져오기 -->
+	<select id="getRoomListByAccNo" parameterType="int" resultType="com.hoge.dto.RoomListDto">
+		select 
+			room_no as no,
+			accommo_no as accommoNo,
+			room_name as name,
+			weekdays_price as weekdaysPrice,
+			weekend_price as weekendPrice,
+			peak_season_price as peakSeasonPrice,
+			standard_number as standardNumber,
+			maximum_number as maximumNumber,
+			price_per_person as pricePerPerson,
+			room_amenity as amenity,
+			room_feature as feature
+		from
+			tb_final_rooms
+		where
+			accommo_no = #{value}
+		order by
+			room_no asc
+	</select>
+	
+	<!--  유상효 roomNo로 객실리스트 가져오기 -->
+	<select id="getRoomByRoomNo" parameterType="int" resultType="com.hoge.dto.RoomDto">
+		select 
+			room_no as no,
+			accommo_no as accommoNo,
+			room_name as name,
+			weekdays_price as weekdaysPrice,
+			weekend_price as weekendPrice,
+			peak_season_price as peakSeasonPrice,
+			standard_number as standardNumber,
+			maximum_number as maximumNumber,
+			price_per_person as pricePerPerson,
+			room_amenity as amenity,
+			room_feature as feature
+		from
+			tb_final_rooms
+		where
+			room_no = #{value}
+	</select>
+	
+	<!-- 유상효 accNo로 객실사진 가져오기 -->
+	<select id="getRoomImagesByRoomNo" parameterType="int" resultType="com.hoge.vo.accommo.RoomImage">
+		select
+			room_image as image,
+			room_no as roomNo
+		from
+			tb_final_room_images
+		where
+			room_no = #{value}
+	</select>
+	
+	<!-- 유상효 roomNo로 객실 수정하기 -->
+	<update id="roomModify" parameterType="com.hoge.vo.accommo.Room">
+		update tb_final_rooms
+		set
+			room_no = #{no},
+			accommo_no = #{accommoNo},
+			room_name = #{name},
+			weekdays_price = #{weekdaysPrice},
+			weekend_price = #{weekendPrice},
+			peak_season_price = #{peakSeasonPrice},
+			standard_number = #{standardNumber},
+			maximum_number = #{maximumNumber},
+			price_per_person = #{pricePerPerson},
+			room_amenity = #{amenity},
+			room_feature = #{feature}
+		where
+			room_no = #{no}
+	</update>
+	
+	<select id="getRoomBookingByUserNO" parameterType="int" resultType="com.hoge.vo.accommo.RoomBooking">
+		select 
+			b.checkInDate,
+			b.checkOutDate, 
+			b.extraPeople, 
+			b.paidPrice, 
+			b.no,
+			b.roomNo,
+			b.bookingMadeDate,
+            a.accommo_name accommoName
+		from 
+			(select 
+				rownum, 
+                check_in_date as checkInDate,
+                check_out_date as checkOutDate, 
+                room_extra_people as extraPeople,
+                room_paid_price as paidPrice,
+                room_booking_no as no,
+                room_no as roomNo,
+                booking_made_date as bookingMadeDate
+			from 
+				tb_final_room_bookings
+			where 
+				user_no=#{value}
+			order by 
+				booking_made_date desc) b,
+            tb_final_rooms r,
+            tb_final_accommodations a
+		where rownum = 1
+        and b.roomNo = r.room_no
+        and r.accommo_no = a.accommo_no
+	</select>
+
+	<update id="updateUserPnt">
+		update 
+			tb_final_users
+		set 
+			user_pnt = (select user_pnt from tb_final_users where user_no=#{userNo})-#{usedPnt}
+		where user_no=#{userNo}
+	</update>
+	
+	<!-- 이승준
+		void refundUserPnt();
+	
+	<update id="upadateRefundUserPnt">
+		update 
+			tb_final_users
+		set 
+			user_pnt = (select user_pnt from tb_final_users where user_no=#{userNo})+#{usedPnt}
+		where user_no=#{userNo}
+	</update>
+	-->
+	
+	<delete id="deleteRoomAvailavility" parameterType="int">
+		delete from tb_final_room_availability
+		where room_booking_no = #{value}
+	</delete>
+	
+	<!-- 성하민 >> 이승준(수정)
+		void updateRoomBooking(RoomBooking roomBooking);
+	-->
+	<update id="updateRoomBooking" parameterType="com.hoge.vo.accommo.RoomBooking">
+		update TB_FINAL_ROOM_BOOKINGS
+		<set>
+			<if test="status != null">
+				room_booking_status =  #{status},
+			</if>
+			<if test="status == 2">
+				room_canceled_date = sysdate,
+			</if>
+			<if test="status == 2">
+    			room_cancel_reason = #{cancelReason},
+			</if>
+		</set>
+		where ROOM_BOOKING_NO = #{no}
+	</update>
+	
+	<!--  성하민 체크아웃 시간 지나면서 예약상태인 예약정보 가져오기
+		RoomBookingBatchDto getRoomBookingBatchDto();-->
+	<select id="getRoomBookingBatchDto" resultType="com.hoge.dto.RoomBookingBatchDto">
+	select b.ROOM_BOOKING_NO as roomBookingNo,
+		    b.USER_NO as userNo,
+		    b.CHECK_OUT_DATE as checkOutDate,
+		    b.ROOM_BOOKING_STATUS as roomBookingStatus,
+		    b.Room_no as roomNo,
+		    b.room_tax_included_price as roomTaxIncludedPrice,
+		    b.room_paid_price as roomPaidPrice,
+		    a.accommo_no as accommoNo,
+		    h.host_no as hostNo,
+		    h.grade_name as GradeName,
+		    g.commission_rate as commissionRate
+		from 
+			TB_FINAL_ROOM_BOOKINGS b, tb_final_hosts h, tb_final_rooms r, tb_final_accommodations a, tb_final_grades g
+		WHERE b.CHECK_OUT_DATE &lt; SYSDATE
+		and b.room_booking_status = 1
+		and b.room_no = r.room_no
+		and r.accommo_no = a.accommo_no
+		and a.host_no = h.host_no
+		and h.grade_name = g.grade_name
+	</select>
+	
+	<!--  성하민 bookingNo로 RoomBooking 가져오기
+		RoomBooking getRoomBookingByRoomBookingNo(int no);
+	 -->
+	<select id="getRoomBookingByRoomBookingNo" parameterType="int" resultType="com.hoge.vo.accommo.RoomBooking">
+		select 
+			ROOM_BOOKING_NO as no,
+			ROOM_NO as roomNo,
+			USER_NO as userNo,
+			CHECK_IN_DATE as checkInDate,
+			CHECK_OUT_DATE as checkOutDate,
+			ROOM_BOOKING_STATUS as status,
+			BOOKING_MADE_DATE as bookingMadeDate,
+			ROOM_CANCELED_DATE as canceledDate,
+			ROOM_CANCEL_REASON as cancelReason,
+			ROOM_PAYMENT as payment,
+			ROOM_TAX_INCLUDED_PRICE as taxIncludedPrice,
+			ROOM_USED_PNT as usedPnt,
+			ROOM_PAID_PRICE as paidPrice,
+			ROOM_BOOKING_NAME as roomUserName,
+			ROOM_BOOKING_TEL as roomUserTel,
+			ROOM_EXTRA_PEOPLE as extraPeople,
+			TID as TID
+		from
+			TB_FINAL_ROOM_BOOKINGS
+		where
+			ROOM_BOOKING_NO = #{no}
+	</select>
+	<!--  성하민 호스트번호로 RoomBooking 가져오기
+		List<RoomBooking> getRoomBookingByHostNo(int no);
+	 -->
+	<select id="getRoomBookingByHostNo" parameterType="int" resultType="com.hoge.vo.accommo.RoomBooking">
+		select 
+			bk.ROOM_BOOKING_NO as no,
+			bk.ROOM_NO as roomNo,
+			bk.USER_NO as userNo,
+			r.room_name as roomName,
+			bk.CHECK_IN_DATE as checkInDate,
+			bk.CHECK_OUT_DATE as checkOutDate,
+			bk.ROOM_BOOKING_STATUS as status,
+			bk.BOOKING_MADE_DATE as bookingMadeDate,
+			bk.ROOM_CANCELED_DATE as canceledDate,
+			bk.ROOM_CANCEL_REASON as cancelReason,
+			bk.ROOM_PAYMENT as payment,
+			bk.ROOM_TAX_INCLUDED_PRICE as taxIncludedPrice,
+			bk.ROOM_USED_PNT as usedPnt,
+			bk.ROOM_PAID_PRICE as paidPrice,
+			bk.ROOM_BOOKING_NAME as roomUserName,
+			bk.ROOM_BOOKING_TEL as roomUserTel,
+			bk.ROOM_EXTRA_PEOPLE as extraPeople,
+			bk.TID as TID
+		from
+			TB_FINAL_ROOM_BOOKINGS bk, tb_final_rooms r, tb_final_accommodations a
+		where bk.room_no = r.room_no
+		and r.accommo_no = a.accommo_no
+		and a.host_no = #{no}
+		and bk.ROOM_BOOKING_STATUS in (0, 1)
+	</select>
+	
+	<select id="searchMapAreaAccommoListDtos" resultType="com.hoge.dto.AccommoListDto">
+		select *
+		from
+			(select
+		    		row_number() over (order by a.accommo_no) rn,
+					a.accommo_no as no, 
+					a.host_no as hostNo, 
+					a.accommo_type as type, 
+					a.accommo_name as name, 
+					a.average_cleanliness_star as cleanlinessStar,
+					a.average_communication_star as communicationStar, 
+					a.average_accuracy_star as accuracyStar, 
+					a.average_location_star as locationStar,
+					a.accommo_address as address, 
+					a.accommo_region_depth1 as regionDepth1, 
+					a.accommo_region_depth2 as regionDepth2, 
+					a.accommo_region_depth3 as regionDepth3, 
+					a.accommo_xce as xce, 
+					a.accommo_yce as yce,
+		            min(r.weekdays_price) as minWeekdaysPrice,
+					max(r.weekdays_price) as maxWeekdaysPrice,
+		            min(r.weekend_price) as minWeekendPrice,
+					max(r.weekend_price) as maxWeekendPrice,
+		            min(r.peak_season_price) as minPeakSeasonPrice,
+					max(r.peak_season_price) as maxPeakSeasonPrice,
+		            min(r.standard_number) as minNumber,
+					max(r.maximum_number) as maxNumber
+				from
+		            tb_final_accommodations a,
+		            tb_final_rooms r
+		        where a.accommo_no = r.accommo_no(+)
+		        	   and a.accommo_xce between #{mapArea.swLat} and #{mapArea.neLat}
+                       and a.accommo_yce between #{mapArea.swLng} and #{mapArea.neLng}
+                    <if test="mapArea.checkIn != '' and mapArea.checkOut !=''">
+                       and r.room_no NOT IN (select 
+                       							bk.room_no
+                                        	 from 
+                                        	 	tb_final_room_availability ava, tb_final_room_bookings bk
+                                       		 where 
+                                       		 	ava.room_booking_no = bk.room_booking_no
+                                       		 and 
+                                       		 	booked_date &gt;= #{mapArea.checkIn}
+                                        	 and 
+                                        	 	booked_date &lt; #{mapArea.checkOut}
+                                        	 group 
+                                        	 	by bk.room_no)
+                    </if>
+                    <if test="mapArea.number != ''">
+                       and r.maximum_number &gt;= to_number(#{mapArea.number})
+                    </if>
+					<if test="criteria.accommoType != null">
+						<choose>
+							<when test="criteria.accommoType == '호텔'">
+								and a.accommo_type = #{criteria.accommoType}
+							</when>
+							<when test="criteria.accommoType == '민박'">
+								and a.accommo_type = #{criteria.accommoType}
+							</when>
+							<when test="criteria.accommoType == '렌탈하우스'">
+								and a.accommo_type = #{criteria.accommoType}
+							</when>
+							<when test="criteria.accommoType == '한옥'">
+								and a.accommo_type = #{criteria.accommoType}
+							</when>
+						</choose>
+					</if>
+		        group by
+		            a.accommo_no, a.host_no, a.accommo_type, a.accommo_name, a.average_cleanliness_star, a.average_communication_star, 
+		            a.average_accuracy_star, a.average_location_star, a.accommo_region_depth1, a.accommo_region_depth2, 
+		            a.accommo_region_depth3, a.accommo_xce, a.accommo_yce,a.accommo_address)
+		where rn between #{criteria.beginIndex} and #{criteria.endIndex}
+	</select>
+	
+	<select id="getMapAreaAccommodationsTotalRows" parameterType="com.hoge.dto.MapArea" resultType="int">
+		select 
+			count(*)
+		from (select
+				a.accommo_no as no
+      		  from
+              	tb_final_accommodations a,
+              	tb_final_rooms r
+              where 
+              	a.accommo_no = r.accommo_no(+)
+              	and a.accommo_xce between #{swLat} and #{neLat}
+                and a.accommo_yce between #{swLng} and #{neLng}
+                <if test="checkIn != '' and checkOut !=''">
+                   and r.room_no NOT IN (select 
+                   							bk.room_no
+                                    	 from 
+                                    	 	tb_final_room_availability ava, tb_final_room_bookings bk
+                                   		 where 
+                                   		 	ava.room_booking_no = bk.room_booking_no
+                                   		 and 
+                                   		 	booked_date &gt;= #{checkIn}
+                                    	 and 
+                                    	 	booked_date &lt; #{checkOut}
+                                    	 group 
+                                    	 	by bk.room_no)
+                </if>
+                <if test="number != ''">
+                   and r.maximum_number &gt;= to_number(#{number})
+                </if>
+            group by 
+		            a.accommo_no)
+	</select>
+	
+	
+
+	
+	<!-- //성하민 관리자페이지에서 숙소 개수 가져오기
+	int getAccommoCountForAdmin(Criteria criteria);
+	 -->
+	<select id="getAccommoCountForAdmin" parameterType="com.hoge.form.Criteria" resultType="int">
+		select 
+			count(*)
+		from  tb_final_accommodations a, tb_final_hosts h
+		 where
+        	a.host_no = h.host_no
+        and
+         	h.STATUS = #{hostStatus}
+         	<if test="grade != null and grade != '' ">
+				and h.GRADE_NAME = #{grade} 
+			</if>
+			<if test="accommoType != null and accommoType != ''">
+				and a.accommo_type  = #{accommoType} 	
+			</if>
+         	<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '회원번호'">
+						and h.HOST_USER_NO = #{value} 
+					</when>
+					<when test="opt == '호스트번호'">
+						and h.HOST_NO = #{value}
+					</when>
+					<when test="opt == '숙소이름'">
+						and a.accommo_name like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '주소'">
+						and a.accommo_address like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>
+	</select>
+	
+	<!-- 성하민 List<AdminAccommoListDto > getAccommoListForAdmin(Criteria criteria); -->
+	<select id="getAccommoListForAdmin" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.AdminAccommoListDto">
+		select 
+			no, 
+		 	type, 
+			name, 
+			cleanlinessStar,
+			communicationStar, 
+			accuracyStar, 
+			locationStar, 
+			address,
+			registeredDate,
+			hostNo,
+			hostName,
+			userNo,
+			hostTel,
+			hostStatus,
+			gradeName,
+			mainImage,
+			accumulatedMoney,
+			statusDetail,
+			request
+		from (select
+			a.accommo_no as no, 
+			a.accommo_type as type, 
+			a.accommo_name as name, 
+			a.average_cleanliness_star as cleanlinessStar,
+			a.average_communication_star as communicationStar, 
+			a.average_accuracy_star as accuracyStar, 
+			a.average_location_star as locationStar, 
+			a.accommo_address as address,
+			a.accommo_registered_date as registeredDate,
+			h.STATUS_DETAIL as statusDetail,
+			h.request as request,
+			h.host_no as hostNo,
+			h.host_name as hostName,
+			h.host_user_no as userNo,
+			h.host_tel as hostTel,
+			h.status as hostStatus,
+			h.grade_name as gradeName,
+			h.host_main_image as mainImage,
+			h.ACCUMULATED_MONEY as accumulatedMoney,
+			row_number() over (order by a.accommo_registered_date desc) rn
+		from
+            tb_final_accommodations a, tb_final_hosts h
+        where
+        	a.host_no = h.host_no
+        and
+         	h.STATUS = #{hostStatus}
+         	<if test="grade != null and grade != '' ">
+				and h.GRADE_NAME = #{grade} 
+			</if>
+			<if test="accommoType != null and accommoType != ''">
+				and a.accommo_type  = #{accommoType} 	
+			</if>
+         	<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '회원번호'">
+						and h.HOST_USER_NO = #{value} 
+					</when>
+					<when test="opt == '호스트번호'">
+						and h.HOST_NO = #{value}
+					</when>
+					<when test="opt == '숙소이름'">
+						and a.accommo_name like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '주소'">
+						and a.accommo_address like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>
+	)
+		where rn between #{beginIndex} and #{endIndex}
+	</select> 
+	
+	
+	<!-- 성하민 호스트페이지 호스트번호와 날짜로 이용가능한 방 찾기
+	 List<RoomDto> getAvailableRoomInfo(Criteria criteria);
+	 -->
+	<select id="getAvailableRoomInfo" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.RoomDto">
+		select 
+   			 r.room_no as no, 
+   			 a.accommo_no as accommoNo, 
+   			 a.host_no as hostNo, 
+   			 r.ROOM_NAME as name,
+			r.WEEKDAYS_PRICE as weekdaysPrice, 
+			r.WEEKEND_PRICE as weekendPrice, 
+			r.PEAK_SEASON_PRICE as peakSeasonPrice, 
+			r.STANDARD_NUMBER as standardNumber, 
+			r.MAXIMUM_NUMBER as maximumNumber,
+			r.PRICE_PER_PERSON as pricePerPerson, 
+			r.ROOM_AMENITY as amenity, 
+			r.ROOM_FEATURE as feature
+		    from 
+		    tb_final_rooms r, TB_FINAL_ACCOMMODATIONS a
+		    where a.host_no = 210
+		    and r.accommo_no = a.accommo_no
+		    and r.room_no NOT IN (select bk.room_no
+                                	 from 
+                                	 	tb_final_room_availability ava, tb_final_room_bookings bk, 
+                                        tb_final_accommodations a, tb_final_rooms r
+                               		 where 
+                               		 	ava.room_booking_no = bk.room_booking_no
+                                        and bk.room_no = r.room_no
+                                        and bk.room_booking_status = 1
+                                        and a.accommo_no = r.accommo_no
+                               		 and 
+                               		 	ava.booked_date = #{bookedDate} 
+                                    and a.host_no = #{hostNo} 
+                                	 group 
+                                	 	by bk.room_no)
+	</select>
+	
+	
+	
+	
+	<!-- 성하민 호스트페이지 호스트번호와 날짜로 해당하는 예약 찾기
+	 List<RoomBookingDto> getBookedRoomInfo(Criteria criteria);
+
+	 -->
+	<select id="getBookedRoomInfo" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.RoomBookingDto">
+			select
+		    bk.room_no as no, 
+		    ava.booked_date as bookedDate, 
+		    a.accommo_no as accommoNo, 
+		    a.host_no as hostNo, 
+		    r.ROOM_NAME as name,
+			bk.room_booking_status as roomBookingStatus, 
+			bk.room_booking_name as roomBookingName
+		    from 
+		    tb_final_room_availability ava, tb_final_room_bookings bk, tb_final_rooms r, TB_FINAL_ACCOMMODATIONS a
+		    where 
+		    ava.room_booking_no = bk.room_booking_no
+		    and r.room_no = bk.room_no
+		    and a.host_no = #{hostNo} 
+		    and r.accommo_no = a.accommo_no
+		    and ava.booked_date = #{bookedDate} 
+	</select>
+	
+	<!-- //성하민 호스트페이지 메인에서 오늘 체크아웃 가져오기
+	List<RoomBookingDto> getTodayCheckOutByAccommoNo(int no);
+	 -->
+	<select id="getTodayCheckOutByAccommoNo" parameterType="int" resultType="com.hoge.vo.accommo.RoomBooking">
+			select
+	 		r.room_name as roomName,
+			bk.room_booking_status as status, 
+			bk.CHECK_IN_DATE as checkInDate,
+			bk.CHECK_OUT_DATE as checkOutDate,
+			bk.ROOM_BOOKING_NAME as roomUserName,
+			bk.ROOM_BOOKING_TEL as roomUserTel,
+			bk.ROOM_EXTRA_PEOPLE as extraPeople
+			from TB_FINAL_ROOM_BOOKINGS bk, TB_FINAL_rooms r
+			where bk.CHECK_Out_DATE &gt;= trunc(sysdate)
+			and bk.CHECK_OUT_DATE &lt; trunc(sysdate + 1)
+			and bk.ROOM_BOOKING_STATUS = 1
+			and r.accommo_no = #{no}
+			and r.room_no = bk.room_no
+	</select>
+	
+	<!-- 	//성하민 호스트페이지 메인에서 오늘 체크인가져오기
+	List<RoomBookingDto> getTodayCheckInByAccommoNo(int no);
+	 -->
+	<select id="getTodayCheckInByAccommoNo" parameterType="int" resultType="com.hoge.vo.accommo.RoomBooking">
+	select
+	 		r.room_name as roomName,
+			bk.room_booking_status as status, 
+			bk.CHECK_IN_DATE as checkInDate,
+			bk.CHECK_OUT_DATE as checkOutDate,
+			bk.ROOM_BOOKING_NAME as roomUserName,
+			bk.ROOM_BOOKING_TEL as roomUserTel,
+			bk.ROOM_EXTRA_PEOPLE as extraPeople
+			from TB_FINAL_ROOM_BOOKINGS bk, TB_FINAL_rooms r
+			where bk.CHECK_IN_DATE &gt;= trunc(sysdate)
+			and bk.CHECK_IN_DATE &lt; trunc(sysdate + 1)
+			and bk.ROOM_BOOKING_STATUS = 1
+			and r.accommo_no = #{no}
+			and r.room_no = bk.room_no
+	</select>
+	
+	
+
+	<!-- 유상효 숙소번호로 숙소정보 조회하기 -->
+	<select id="getAccDetailByAccNo" parameterType="int" resultType="com.hoge.dto.AccMainDto">
+		select
+			h.host_no as hostNo,
+			h.hosting_type as hostingType,
+			h.host_name as hostName,
+			h.host_tel as tel,
+			h.account_holder_name as accountHolderName,
+			h.bank_name as bankName,
+			h.account_number as accountNumber,
+			h.host_main_image as mainImage,
+			a.accommo_No as accNo,
+			a.accommo_type as accType,
+			a.accommo_name as accName,
+			a.accommo_web_address as accWebAddress,
+			a.accommo_intro_title as accIntroTitle,
+			a.accommo_intro_content as accIntroContent,
+			a.accommo_address as accAddress,
+			a.accommo_check_in_time as accCheckInTime,
+			a.accommo_check_out_time as accCheckOutime,
+			a.accommo_region_depth1 as dept1,
+			a.accommo_region_depth2 as dept2
+		from
+			tb_final_accommodations a, tb_final_hosts h
+		where
+			a.host_no = h.host_no
+		and a.accommo_no = #{value}
+	</select>
+	
+	<!-- 유상효 날짜 검색해서 룸리스트 조회하기 -->
+	<select id="getRoomListByDate" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.RoomListDto">
+		select
+			r.room_no as no,
+			r.accommo_no as accommoNo,
+			r.room_name as name,
+			r.weekdays_price as weekdaysPrice,
+			r.weekend_price as weekendPrice,
+			r.peak_season_price as peakSeasonPrice,
+			r.standard_number as standardNumber,
+			r.maximum_number as maximumNumber,
+			r.price_per_person as pricePerPerson,
+			r.room_amenity as amenity,
+			r.room_feature as feature
+		from
+			tb_final_accommodations a, tb_final_rooms r
+		where
+			a.accommo_no = r.accommo_no
+		and
+			a.accommo_no = #{accNo}
+		and
+			r.room_no NOT IN (
+					  select a.room_no
+                      from tb_final_rooms a, tb_final_room_bookings b
+                      where a.room_no = b.room_no
+                      and b.check_in_date &gt;= TO_DATE(#{checkInDate}, 'YYYY-MM-DD')
+                      and b.check_out_date &lt;= TO_DATE(#{checkOutDate}, 'YYYY-MM-DD')
+                      )
+     </select>
+     
+     <!--  유상효 accNo로 info type1 가져오기 -->
+	<select id="getAccInfoType1ByAccNo" parameterType="int" resultType="com.hoge.dto.RoomListDto">
+		select 
+			a.info_title as infoTitle1,
+			b.info_content as infoContent1
+		from
+			tb_final_accommo_etc_info a, tb_final_accommo_etc_info_detail b
+		where
+			accommo_no = #{value}
+		and a.info_no = b.info_no
+		and a.info_type = 1
+	</select>
+	
+     <!--  유상효 accNo로 info type2 가져오기 -->
+	<select id="getAccInfoType2ByAccNo" parameterType="int" resultType="com.hoge.dto.RoomListDto">
+		select 
+			a.info_title as infoTitle2,
+			b.info_content as infoContent2
+		from
+			tb_final_accommo_etc_info a, tb_final_accommo_etc_info_detail b
+		where
+			accommo_no = #{value}
+		and a.info_no = b.info_no
+		and a.info_type = 2
+	</select>
+
+    
+    
+	<!--//성하민 호스트페이지 메인에서 최근 3일 예약건수 가져오기
+	int getRecentBookingCountByAccommoNo(int no);
+	 -->
+	 <select id="getRecentBookingCountByAccommoNo" parameterType="int" resultType="int">
+		select count(*)
+			from TB_FINAL_ROOM_BOOKINGS bk, TB_FINAL_rooms r
+			where BOOKING_MADE_DATE &gt;= trunc(sysdate-2)
+			and r.accommo_no = #{no}
+			and r.room_no = bk.room_no
+	</select>
+	
+	<!-- 	//성하민 호스트페이지 메인에서 최근 3일 예약데이터 가져오기
+	List<RoomBooking> getRecentBookingListByAccommoNo(Criteria criteria); 
+	
+	 -->
+	 <select id="getRecentBookingListByAccommoNo" parameterType="com.hoge.form.Criteria" resultType="com.hoge.vo.accommo.RoomBooking">
+	 select 
+			no,
+			roomNo,
+			userNo,
+			roomName,
+			checkInDate,
+			checkOutDate,
+			status,
+			bookingMadeDate,
+			canceledDate,
+			cancelReason,
+			payment,
+			taxIncludedPrice,
+			usedPnt,
+			paidPrice,
+			roomUserName,
+			roomUserTel,
+			extraPeople
+		from (select
+			bk.ROOM_BOOKING_NO as no,
+			bk.ROOM_NO as roomNo,
+			r.ROOM_Name as roomName,
+			bk.USER_NO as userNo,
+			bk.CHECK_IN_DATE as checkInDate,
+			bk.CHECK_OUT_DATE as checkOutDate,
+			bk.ROOM_BOOKING_STATUS as status,
+			bk.BOOKING_MADE_DATE as bookingMadeDate,
+			bk.ROOM_CANCELED_DATE as canceledDate,
+			bk.ROOM_CANCEL_REASON as cancelReason,
+			bk.ROOM_PAYMENT as payment,
+			bk.ROOM_TAX_INCLUDED_PRICE as taxIncludedPrice,
+			bk.ROOM_USED_PNT as usedPnt,
+			bk.ROOM_PAID_PRICE as paidPrice,
+			bk.ROOM_BOOKING_NAME as roomUserName,
+			bk.ROOM_BOOKING_TEL as roomUserTel,
+			bk.ROOM_EXTRA_PEOPLE as extraPeople,
+			row_number() over (order by bk.BOOKING_MADE_DATE desc) rn
+	from TB_FINAL_ROOM_BOOKINGS bk, TB_FINAL_rooms r
+			where BOOKING_MADE_DATE &gt;= trunc(sysdate-2)
+			and r.accommo_no = #{no}
+			and r.room_no = bk.room_no
+	)
+		where rn between #{beginIndex} and #{endIndex}
+	</select>
+	
+	 
+	 <!-- //성하민 호스트페이지 메인에서 오늘 예약건수 가져오기
+	int getTodayReviewCountByAccommoNo(int no);
+	 -->
+	<select id="getTodayBookingCountByAccommoNo" parameterType="int" resultType="int">
+		select count(*)
+			from TB_FINAL_ROOM_BOOKINGS bk, TB_FINAL_rooms r
+			where BOOKING_MADE_DATE &gt;= trunc(sysdate)
+			and r.accommo_no = #{no}
+			and r.room_no = bk.room_no
+	</select>
+	
+	
+	
+	
+	
+	
+	
+</mapper>

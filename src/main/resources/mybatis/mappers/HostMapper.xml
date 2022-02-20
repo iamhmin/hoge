@@ -1,0 +1,756 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.HostMapper">
+
+	<!-- 유상효 userId로 가장 큰 hostNo 불러오기 -->
+	<select id="getHostNoByUserId" parameterType="String" resultType="int">
+		select max(h.host_no)
+		from tb_final_hosts h, tb_final_users u
+		where h.host_user_no = u.user_no
+		and user_id = #{value}
+	</select>
+
+	<!-- 유상효 userId로 userNo 불러오기 -->
+	<select id="getUserNoByUserId" parameterType="String" resultType="int">
+	  	select user_no from tb_final_users
+	  	where user_id = #{value}
+	</select>
+
+	<!-- 유상효 호스트 등록하기 -->
+	<insert id="insertHostApply" parameterType="com.hoge.vo.other.Host">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+				select final_host_no_seq.nextval
+				from dual
+		</selectKey>
+		insert into tb_final_hosts
+		(
+		host_no,
+		host_user_no,
+		account_holder_name,
+		account_number,
+		bank_name,
+		host_name,
+		hosting_type,
+		host_tel,
+		host_main_image
+		)
+		values
+			(
+			#{no},
+			#{userNo},
+			#{accountHolderName},
+			#{accountNumber},
+			#{bankName},
+			#{name},
+			#{hostingType},
+			#{tel},
+			#{mainImage}
+			)
+	</insert>
+	
+	<!-- 유상효 호스트 등록시 유저 isHost 업데이트 -->
+	<update id="userIsHostUpdate" parameterType="int">
+		update tb_final_users
+		set
+			user_is_host = 'Y'
+		where
+			user_no = #{value}
+	</update>
+	
+	<!-- 유상효 숙소 등록하기 -->
+	<insert id="insertAcc" parameterType="com.hoge.vo.accommo.Accommodation">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+				select final_accommo_no_seq.nextval
+				from dual
+		</selectKey>
+		insert into tb_final_accommodations
+		(
+		accommo_no,
+		host_no,
+		accommo_type,
+		accommo_name,
+		accommo_intro_title,
+		accommo_intro_content,
+		accommo_web_address,
+		accommo_check_in_time,
+		accommo_check_out_time,
+		accommo_address,
+		accommo_region_depth1,
+		accommo_region_depth2,
+		accommo_region_depth3,
+		accommo_xce,
+		accommo_yce
+		)
+		values
+			(
+			#{no},
+			#{hostNo},
+			#{type},
+			#{name},
+			#{introTitle},
+			#{introContent},
+			#{webAddress},
+			#{checkInTime},
+			#{checkOutime},
+			#{address},
+			#{regionDepth1},
+			#{regionDepth2},
+			#{regionDepth3},
+			#{xce},
+			#{yce}
+			)
+	</insert>
+
+	<!-- 유상효 숙소 사진 저장 -->
+	<insert id="insertAccImage" parameterType="com.hoge.vo.accommo.AccommoImage">
+		insert into tb_final_accommo_images
+		(
+		accommo_image,
+		accommo_no
+		)
+		values
+			(
+			#{image},
+			#{accommoNo}
+			)
+	</insert>
+	
+	<!-- 유상효 체험 등록하기 -->	
+	<insert id="insertAct" parameterType="com.hoge.vo.activities.Activity">
+		<selectKey keyProperty="no" resultType="int" order="BEFORE">
+				select final_activity_no_seq.nextval
+				from dual
+		</selectKey>
+		insert into tb_final_activities
+		(
+		activity_no,
+		host_no,
+		maximum_number,
+		price_per_person,
+		activity_name,
+		activity_address,
+		activity_intro_title,
+		activity_intro_content,
+		activity_region_depth1,
+		activity_region_depth2,
+		activity_region_depth3,
+		activity_xce,
+		activity_yce
+		)
+		values
+			(
+			#{no},
+			#{hostNo},
+			#{maximumNumber},
+			#{pricePerPerson},
+			#{name},
+			#{address},
+			#{introTitle},
+			#{introContent},
+			#{regionDepth1},
+			#{regionDepth2},
+			#{regionDepth3},
+			#{xce},
+			#{yce}
+			)
+	</insert>
+	
+	<!-- 유상효 체험 사진 저장-->
+	<insert id="insertActImage" parameterType="com.hoge.vo.activities.ActivityImage">
+		insert into tb_final_activity_images
+		(
+		activity_image,
+		activity_no
+		)
+		VALUES
+			(
+			#{image},
+			#{activityNo}
+			)
+	</insert>
+	
+	<!-- 유상효 accNo로 숙소사진 불러오기 -->
+	<select id="getAccImagesByAccNo" parameterType="int" resultType="com.hoge.vo.accommo.AccommoImage">
+		select
+			accommo_image as image,
+			accommo_no as accommoNo
+		from
+			tb_final_accommo_images
+		where
+			accommo_no = #{value}
+	</select>
+	
+	<!-- 유상효 hostNo로 숙소사진 불러오기 -->
+	<select id="getAccImagesByHostNo" parameterType="int" resultType="com.hoge.vo.accommo.AccommoImage">
+		select
+			i.accommo_image as image,
+			i.accommo_no as accommoNo
+		from
+			tb_final_accommo_images i, tb_final_accommodations a
+		where
+			a.accommo_no = i.accommo_no
+		and	a.host_no = #{value}
+	</select>
+	
+	<!-- 유상효 accNo로 체험사진 불러오기 -->
+	<select id="getActImagesByActNo" parameterType="int" resultType="com.hoge.vo.activities.ActivityImage">
+		select
+			activity_image as image,
+			activity_no as activityNo
+		from
+			tb_final_activity_images
+		where
+			activity_no = #{value}
+	</select>
+	
+	<!-- 유상효 hostNo로 체험사진 불러오기 -->
+	<select id="getActImagesByHostNo" parameterType="int" resultType="com.hoge.vo.activities.ActivityImage">
+		select
+			i.activity_image as image,
+			i.activity_no as activityNo
+		from
+			tb_final_activity_images i, tb_final_activities a
+		where
+			a.activity_no = i.activity_no
+		and	a.host_no = #{value}
+	</select>
+	
+	<!-- 유상효 유저넘버로 숙소리스트 가져오기 -->
+	<select id="getAccListByUserNo" parameterType="int" resultType="com.hoge.dto.AccListDto">
+		select
+			a.accommo_name as accName,
+			a.accommo_No as accNo,
+			h.host_main_image as mainImage,
+			h.hosting_type as hostingType,
+			h.host_no as hostNo,
+			a.accommo_type as accType,
+			a.accommo_intro_title as accIntroTitle
+		from
+			tb_final_accommodations a, tb_final_hosts h, tb_final_users u 
+		where
+			u.user_no = h.host_user_no
+		and h.host_no = a.host_no
+		and u.user_no = #{value}
+	</select>
+
+	<!-- 유상효 유저넘버로 체험리스트 가져오기 -->
+	<select id="getActListByUserNo" parameterType="int" resultType="com.hoge.dto.ActListDto">
+		select
+			a.activity_name as actName,
+			a.activity_no as actNo,
+			h.host_main_image as mainImage,
+			h.hosting_type as hostingType,
+			h.host_no as hostNo,
+			a.activity_intro_title as actIntroTitle
+		from
+			tb_final_activities a, tb_final_hosts h, tb_final_users u 
+		where
+			u.user_no = h.host_user_no
+		and h.host_no = a.host_no
+		and u.user_no = #{value}
+	</select>
+	
+	<!-- 유상효 호스트넘버로 숙소정보 가져오기 -->
+	<select id="getAccMainByHostNo" parameterType="int" resultType="com.hoge.dto.AccMainDto">
+		select
+			h.host_no as hostNo,
+			h.hosting_type as hostingType,
+			h.host_name as hostName,
+			h.host_tel as tel,
+			h.account_holder_name as accountHolderName,
+			h.bank_name as bankName,
+			h.account_number as accountNumber,
+			h.host_main_image as mainImage,
+			a.accommo_No as accNo,
+			a.accommo_type as accType,
+			a.accommo_name as accName,
+			a.accommo_web_address as accWebAddress,
+			a.accommo_intro_title as accIntroTitle,
+			a.accommo_intro_content as accIntroContent,
+			a.accommo_address as accAddress,
+			a.accommo_check_in_time as accCheckInTime,
+			a.accommo_check_out_time as accCheckOutime
+		from
+			tb_final_accommodations a, tb_final_hosts h
+		where
+			a.host_no = h.host_no
+		and h.host_no = #{value}
+	</select>
+	
+	<!-- 유상효 호스트넘버로 체험정보 가져오기 -->
+	<select id="getActMainByHostNo" parameterType="int" resultType="com.hoge.dto.ActMainDto">
+		select
+			h.host_no as hostNo,
+			h.hosting_type as hostingType,
+			h.host_name as hostName,
+			h.host_tel as tel,
+			h.account_holder_name as accountHolderName,
+			h.bank_name as bankName,
+			h.account_number as accountNumber,
+			h.host_main_image as mainImage,
+			a.activity_no as actNo,
+			a.activity_name as actName,
+			a.activity_intro_title as actIntroTitle,
+			a.activity_intro_content as actIntroContent,
+			a.maximum_number as actMaximumNumber,
+			a.price_per_person as actPricePerPerson,
+			a.activity_address as actAddress
+		from
+			tb_final_activities a, tb_final_hosts h
+		where
+			a.host_no = h.host_no
+		and h.host_no = #{value}
+	</select>
+	
+	
+
+	<!-- 성하민 -->
+	<update id="updateHost" parameterType="com.hoge.vo.other.Host">
+		update tb_final_hosts
+		set
+			host_name = #{name},
+			host_tel = #{tel},
+			account_holder_name = #{accountHolderName},
+			bank_name = #{bankName},
+			account_number = #{accountNumber},
+			host_main_image = #{mainImage},
+			grade_name = #{gradeName},
+			status = #{status},
+			status_detail = #{statusDetail},
+			request = #{request},
+			accumulated_Money = #{accumulatedMoney}
+		where
+			host_no = #{no}
+	</update>
+	
+	<!-- 호스트 넘버로 호스트 수정하기 -->
+	<update id="modifyHostByHostNo" parameterType="com.hoge.vo.other.Host">
+		update tb_final_hosts
+		set
+			host_name = #{name},
+			host_tel = #{tel},
+			account_holder_name = #{accountHolderName},
+			bank_name = #{bankName},
+			account_number = #{accountNumber},
+			host_main_image = #{mainImage}
+		where
+			host_no = #{no}
+	</update>
+	
+	<!-- 호스트 넘버로 숙소 수정하기 -->
+	<update id="modifyAccByHostNo" parameterType="com.hoge.vo.accommo.Accommodation">
+		update tb_final_accommodations
+		set
+			accommo_type = #{type},
+			accommo_name = #{name},
+			accommo_web_address = #{webAddress},
+			accommo_address = #{address},
+			accommo_check_in_time = #{checkInTime},
+			accommo_check_out_time = #{checkOutime},
+			accommo_intro_title = #{introTitle},
+			accommo_intro_content = #{introContent}
+		where
+			host_no = #{hostNo}
+	</update>
+	
+	<!-- 호스트 넘버로 체험 수정하기 -->
+	<update id="modifyActByHostNo" parameterType="com.hoge.vo.activities.Activity">
+		update tb_final_activities
+		set
+			activity_name = #{name},
+			activity_address = #{address},
+			maximum_number = #{maximumNumber},
+			price_per_person = #{pricePerPerson},
+			activity_intro_title = #{introTitle},
+			activity_intro_content = #{introContent}
+		where
+			host_no = #{hostNo}
+	</update>
+	
+	<update id="modifyAccImagesByAccNo" parameterType="com.hoge.vo.accommo.Accommodation">
+		update tb_final_accommo_images
+		set
+			accommo_image #{image},
+		where
+			accommo_no = #{acc_no}
+	</update>
+	
+	<update id="modifyActImagesByAccNo" parameterType="com.hoge.vo.activities.ActivityImage">
+		update tb_final_activity_images
+		set
+			activity_image #{image},
+		where
+			activity_no = #{act_no}
+	</update>
+	
+	<!-- 유상효 할인 프로모션 등록 -->
+	<insert id="addPromotionDiscount" parameterType="com.hoge.vo.other.PromotionDiscount">
+		insert into tb_final_discount_promotions
+		(
+		discount_promotion_no,
+		weekdays_discount_rate,
+		weekend_discount_rate,
+		peak_season_discount_rate,
+		promotion_starting_date,
+		promotion_ending_date,
+		promotion_intro_content,
+		host_no
+		)
+		values
+			(
+			FINAL_DISCOUNT_PROMOTION_NO_SEQ.NEXTVAL,
+			#{weekdaysDiscountRate},
+			#{weekendDiscountRate},
+			#{peakSeasonDiscountRate},
+			#{startingDate},
+			#{endingDate},
+			#{introContent},
+			#{hostNo}
+			)
+	</insert>
+	
+	<!-- 유상효 증정 프로모션 등록 -->
+	<insert id="addPromotionOffer" parameterType="com.hoge.vo.other.PromotionOffer">
+		insert into tb_final_offer_promotions
+		(
+		offer_promotion_no,
+		offer_content,
+		promotion_starting_date,
+		promotion_ending_date,
+		promotion_intro_content,
+		host_no
+		)
+		values
+			(
+			final_offer_promotion_no_seq.nextval,
+			#{content},
+			#{startingDate},
+			#{endingDate},
+			#{introContent},
+			#{hostNo}
+			)
+	</insert>
+	
+	<!-- 유상효 프로모션 리스트 -->
+	<select id="getPromotionDiscountByHostNo" parameterType="int" resultType="com.hoge.vo.other.PromotionDiscount">
+		select
+			discount_promotion_no as no,
+			weekdays_discount_rate as weekdaysDiscountRate,
+			weekend_discount_rate as weekendDiscountRate,
+			peak_season_discount_rate as peakSeasonDiscountRate,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			TB_FINAL_DISCOUNT_PROMOTIONS
+		where
+			host_no = #{value}
+	</select>
+	<select id="getPromotionDiscountByHostNoAndStatusY" parameterType="int" resultType="com.hoge.vo.other.PromotionDiscount">
+		select
+			discount_promotion_no as no,
+			weekdays_discount_rate as weekdaysDiscountRate,
+			weekend_discount_rate as weekendDiscountRate,
+			peak_season_discount_rate as peakSeasonDiscountRate,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			tb_final_discount_promotions
+		where
+			host_no = #{value}
+		and status = 'Y'
+	</select>
+	<select id="getPromotionDiscountByHostNoAndStatusW" parameterType="int" resultType="com.hoge.vo.other.PromotionDiscount">
+		select
+			discount_promotion_no as no,
+			weekdays_discount_rate as weekdaysDiscountRate,
+			weekend_discount_rate as weekendDiscountRate,
+			peak_season_discount_rate as peakSeasonDiscountRate,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			tb_final_discount_promotions
+		where
+			host_no = #{value}
+		and status = 'W'
+	</select>
+	<select id="getPromotionDiscountByHostNoAndStatusN" parameterType="int" resultType="com.hoge.vo.other.PromotionDiscount">
+		select
+			discount_promotion_no as no,
+			weekdays_discount_rate as weekdaysDiscountRate,
+			weekend_discount_rate as weekendDiscountRate,
+			peak_season_discount_rate as peakSeasonDiscountRate,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			tb_final_discount_promotions
+		where
+			host_no = #{value}
+		and status = 'N'
+	</select>
+	<select id="getPromotionDiscountByHostNoAndStatusD" parameterType="int" resultType="com.hoge.vo.other.PromotionDiscount">
+		select
+			discount_promotion_no as no,
+			weekdays_discount_rate as weekdaysDiscountRate,
+			weekend_discount_rate as weekendDiscountRate,
+			peak_season_discount_rate as peakSeasonDiscountRate,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			tb_final_discount_promotions
+		where
+			host_no = #{value}
+		and status = 'D'
+	</select>
+	<select id="getPromotionOfferByHostNo" parameterType="int" resultType="com.hoge.vo.other.PromotionOffer">
+		select
+			offer_promotion_no as no,
+			offer_content as content,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			tb_final_offer_promotions
+		where
+			host_no = #{value}
+	</select>
+	<select id="getPromotionOfferByHostNoAndStatusY" parameterType="int" resultType="com.hoge.vo.other.PromotionOffer">
+		select
+			offer_promotion_no as no,
+			offer_content as content,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			tb_final_offer_promotions
+		where
+			host_no = #{value}
+		and status = 'Y'
+	</select>
+	<select id="getPromotionOfferByHostNoAndStatusW" parameterType="int" resultType="com.hoge.vo.other.PromotionOffer">
+		select
+			offer_promotion_no as no,
+			offer_content as content,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			tb_final_offer_promotions
+		where
+			host_no = #{value}
+		and status = 'W'
+	</select>
+	<select id="getPromotionOfferByHostNoAndStatusN" parameterType="int" resultType="com.hoge.vo.other.PromotionOffer">
+		select
+			offer_promotion_no as no,
+			offer_content as content,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			tb_final_offer_promotions
+		where
+			host_no = #{value}
+		and status = 'N'
+	</select>
+	<select id="getPromotionOfferByHostNoAndStatusD" parameterType="int" resultType="com.hoge.vo.other.PromotionOffer">
+		select
+			offer_promotion_no as no,
+			offer_content as content,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			tb_final_offer_promotions
+		where
+			host_no = #{value}
+		and status = 'D'
+	</select>
+	
+	<!-- 유상효 프로모션번호로 할인프로모션 조회 -->
+	<select id="getPromotionDiscountByPromotionNo" parameterType="int" resultType="com.hoge.vo.other.PromotionDiscount">
+		select
+			discount_promotion_no as no,
+			weekdays_discount_rate as weekdaysDiscountRate,
+			weekend_discount_rate as weekendDiscountRate,
+			peak_season_discount_rate as peakSeasonDiscountRate,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			tb_final_discount_promotions
+		where
+			discount_promotion_no = #{value}
+	</select>
+	
+	<!-- 유상효 프로모션번호로 할인프로모션 수정하기 -->
+	<update id="modifyPromotionDiscount" parameterType="com.hoge.vo.other.PromotionDiscount">
+		update tb_final_discount_promotions
+		set
+			discount_promotion_no = #{no},
+			weekdays_discount_rate = #{weekdaysDiscountRate},
+			weekend_discount_rate = #{weekendDiscountRate},
+			peak_season_discount_rate = #{peakSeasonDiscountRate},
+			promotion_starting_date = #{startingDate},
+			promotion_ending_date = #{endingDate},
+			promotion_intro_content = #{introContent}
+		where
+			discount_promotion_no = #{no}
+	</update>
+	
+	<!-- 유상효 프로모션번호로 증정프로모션 조회 -->
+	<select id="getPromotionOfferByPromotionNo" parameterType="int" resultType="com.hoge.vo.other.PromotionOffer">
+		select
+			offer_promotion_no as no,
+			offer_content as content,
+			promotion_starting_date as startingDate,
+			promotion_ending_date as endingDate,
+			promotion_registered_date as registeredDate,
+			promotion_intro_content as introContent,
+			status as status
+		from
+			tb_final_offer_promotions
+		where
+			offer_promotion_no = #{no}
+	</select>
+	
+	<!-- 유상효 프로모션번호로 증정프로모션 수정하기 -->
+	<update id="modifyPromotionOffer" parameterType="com.hoge.vo.other.PromotionOffer">
+		update tb_final_offer_promotions
+		set
+			offer_promotion_no = #{no},
+			offer_content = #{content},
+			promotion_starting_date = #{startingDate},
+			promotion_ending_date = #{endingDate},
+			promotion_intro_content = #{introContent}
+		where
+			offer_promotion_no = #{no}
+	</update>
+	
+
+	<!-- 성하민
+		Host getHostByNo();
+	 -->
+	 <select id="getHostByNo" parameterType="int" resultType="com.hoge.vo.other.Host">
+	 	select
+	 		host_no as no,
+	 		host_user_no as userNo,
+	 		host_name as name,
+	 		account_holder_name as accountHolderName,
+	 		account_number as accountNumber,
+	 		bank_name as bankName,
+	 		hosting_type as hostingType,
+	 		host_tel as tel,
+	 		grade_name as gradeName,
+	 		host_main_image as mainImage,
+	 		ACCUMULATED_MONEY as accumulatedMoney,
+	 		STATUS_DETAIL as statusDetail,
+			request as request,
+			status as status
+	 	from
+	 		tb_final_hosts
+	 	where 
+	 		host_no = #{value} 
+	 </select>
+	 
+	 <!--  유상효 숙소 부대시설 및 기타 안내 등록 -->
+	 <insert id="addAccInfo" parameterType="com.hoge.form.AccInfoForm">
+	 	<selectKey keyProperty="no" resultType="int" order="BEFORE">
+	 		select final_accommo_info_no_seq.nextval
+	 		from dual
+	 	</selectKey>
+	 	insert into tb_final_accommo_etc_info
+	 	(
+	 	info_no,
+	 	info_title,
+	 	accommo_no,
+	 	info_type
+	 	)
+	 	values
+	 		(
+	 		#{no},
+	 		#{title},
+	 		#{accommoNo},
+	 		#{type}
+	 		)
+	 </insert>
+	 <insert id="addAccInfoDetail" parameterType="com.hoge.form.AccInfoForm">
+	 	insert into tb_final_accommo_etc_info_detail
+	 	(
+	 	info_content_no,
+	 	info_content,
+	 	info_no
+	 	)
+	 	values
+	 		(
+	 		#{contentNo},
+	 		#{content},
+	 		#{etcInfoNo}
+	 		)
+	 </insert>  
+	 
+	 <!--  유상효 체험 부대시설 및 기타 안내 등록 -->
+	 <insert id="addActInfo" parameterType="com.hoge.form.AccInfoForm">
+	 	<selectKey keyProperty="no" resultType="int" order="BEFORE">
+	 		select final_activity_info_no_seq.nextval
+	 		from dual
+	 	</selectKey>
+	 	insert into tb_final_activity_etc_info
+	 	(
+	 	info_no,
+	 	info_title,
+	 	activity_no,
+	 	info_type
+	 	)
+	 	values
+	 		(
+	 		#{no},
+	 		#{title},
+	 		#{accommoNo},
+	 		#{type}
+	 		)
+	 </insert>
+	 <insert id="addActInfoDetail" parameterType="com.hoge.form.AccInfoForm">
+	 	insert into tb_final_activity_etc_info_detail
+	 	(
+	 	info_content_no,
+	 	info_content,
+	 	info_no
+	 	)
+	 	values
+	 		(
+	 		#{contentNo},
+	 		#{content},
+	 		#{etcInfoNo}
+	 		)
+	 </insert>  
+	 
+	 
+
+</mapper>

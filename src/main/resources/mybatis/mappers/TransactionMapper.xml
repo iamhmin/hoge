@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.TransactionMapper">
+  
+
+
+
+
+<!-- 성하민 -->
+	<insert id="insertHostTransaction" parameterType="com.hoge.vo.other.Transaction">
+		insert into tb_final_transactions
+			(transaction_no, transaction_type, transaction_amount, transaction_to_host_no, accumulated_money, TRANSACTION_DATE)
+		values
+			(final_transaction_no_seq.nextval, 2, #{amount}, #{toHostNo}, #{accumulatedMoney}, sysdate)
+	</insert>
+	
+	<!-- 이승준
+	 	insertUserTransaction(Transaction transaction);
+	 	room_booking_no, #{accommoBookingNo}
+	-->
+	<insert id="insertUserTransaction" parameterType="com.hoge.vo.other.Transaction">
+		insert into tb_final_transactions
+			(transaction_no, transaction_type, transaction_amount, transaction_to_user_no, transaction_date, accumulated_money)
+		values
+			(final_transaction_no_seq.nextval, 3, #{amount}, #{toUserNo}, sysdate, #{accumulatedMoney})
+	</insert>
+
+    <!-- // 성하민
+long getTotalDeposit(Criteria criteria);
+	 -->
+	<select id="getTotalDeposit" parameterType="com.hoge.form.Criteria" resultType="long">
+		select NVL(SUM(transaction_amount),0)
+		from TB_FINAL_TRANSACTIONS
+		where transaction_type = 1
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				and TRANSACTION_DATE &gt; to_date(#{startDate}, 'YYYY-MM-DD' )
+				and TRANSACTION_DATE &lt; to_date(#{endDate}, 'YYYY-MM-DD' ) + 1
+			</if>
+	</select> 
+	
+    <!-- // 성하민
+long getTotalWithdrawal(Criteria criteria);
+	 -->
+	<select id="getTotalWithdrawal" parameterType="com.hoge.form.Criteria" resultType="long">
+		select NVL(SUM(transaction_amount),0)
+		from TB_FINAL_TRANSACTIONS
+		where transaction_type in (2, 3)
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				and TRANSACTION_DATE &gt; to_date(#{startDate}, 'YYYY-MM-DD' )
+				and TRANSACTION_DATE &lt; to_date(#{endDate}, 'YYYY-MM-DD' ) + 1
+			</if>
+	</select> 
+	
+	
+    <!-- // 성하민
+int getTransactionListTotalRows(Criteria criteria);
+	 -->
+	<select id="getTransactionListTotalRows" parameterType="com.hoge.form.Criteria" resultType="int">
+		select 	count(*)
+		from TB_FINAL_TRANSACTIONS
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				where TRANSACTION_DATE &gt; to_date(#{startDate}, 'YYYY-MM-DD' )
+				and TRANSACTION_DATE &lt; to_date(#{endDate}, 'YYYY-MM-DD' ) + 1
+			</if>
+	</select> 
+	
+	
+    <!-- // 성하민
+  List<Transaction> getTransactionList(Criteria criteria);
+	 -->
+	<select id="getTransactionList" parameterType="com.hoge.form.Criteria" resultType="com.hoge.vo.other.Transaction">
+		select 	
+			TRANSACTION_NO as no,
+			TRANSACTION_TYPE as type,
+			TRANSACTION_AMOUNT as amount,
+			TRANSACTION_TO_HOST_NO as toHostNo,
+			TRANSACTION_TO_USER_NO as toUserNo,
+			TRANSACTION_DATE as createdDate,
+			ACTIVITY_BOOKING_NO as activityBookingNo,
+			ROOM_BOOKING_NO as accommoBookingNo,
+			ACCUMULATED_MONEY as accumulatedMoney
+		from (
+			select 	
+			TRANSACTION_NO,
+			TRANSACTION_TYPE,
+			TRANSACTION_AMOUNT,
+			TRANSACTION_TO_HOST_NO,
+			TRANSACTION_TO_USER_NO,
+			TRANSACTION_DATE,
+			ACTIVITY_BOOKING_NO,
+			ROOM_BOOKING_NO,
+			ACCUMULATED_MONEY,
+	 		row_number() over (order by TRANSACTION_DATE desc) rn
+		from TB_FINAL_TRANSACTIONS
+			<if test="startDate != null and startDate != '' and endDate != null and endDate != ''">
+				where TRANSACTION_DATE &gt; to_date(#{startDate}, 'YYYY-MM-DD' )
+				and TRANSACTION_DATE &lt; to_date(#{endDate}, 'YYYY-MM-DD' ) + 1
+			</if>
+		)
+		where rn between #{beginIndex} and #{endIndex}
+	</select> 
+  
+    <!-- // 성하민
+  Transaction getlatestTransaction();
+	 -->
+	<select id="getlatestTransaction"  resultType="com.hoge.vo.other.Transaction">
+		select 	
+			TRANSACTION_NO as no,
+			TRANSACTION_TYPE as type,
+			TRANSACTION_AMOUNT as amount,
+			TRANSACTION_TO_HOST_NO as toHostNo,
+			TRANSACTION_TO_USER_NO as toUserNo,
+			TRANSACTION_DATE as createdDate,
+			ACTIVITY_BOOKING_NO as activityBookingNo,
+			ROOM_BOOKING_NO as accommoBookingNo,
+			ACCUMULATED_MONEY as accumulatedMoney
+		from (
+			select 	
+			TRANSACTION_NO,
+			TRANSACTION_TYPE,
+			TRANSACTION_AMOUNT,
+			TRANSACTION_TO_HOST_NO,
+			TRANSACTION_TO_USER_NO,
+			TRANSACTION_DATE,
+			ACTIVITY_BOOKING_NO,
+			ROOM_BOOKING_NO,
+			ACCUMULATED_MONEY,
+	 		row_number() over (order by TRANSACTION_DATE desc) rn
+		from TB_FINAL_TRANSACTIONS
+		)
+		where rn = 1
+	</select> 
+  
+
+</mapper>

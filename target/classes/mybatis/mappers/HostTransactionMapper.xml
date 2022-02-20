@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.HostTransactionMapper">
+  
+
+
+<!-- 성하민 -->
+	<insert id="insertHostsalesTransaction" parameterType="com.hoge.vo.other.HostTransaction">
+		insert into TB_FINAL_HOST_TRANSACTIONS
+			(TRANSACTION_TYPE, TRANSACTION_AMOUNT, TRANSACTION_DATE, HOST_NO)
+		values
+			(#{type}, #{amount}, sysdate, #{hostNo})
+	</insert>
+
+
+<!--  성하민
+  	int getHostTransactionCountByHostNo(int no); -->
+  <select id="getHostTransactionCountByHostNo" parameterType="int" resultType="int">
+	 	select
+	 		count(*)
+	 	from
+	 		TB_FINAL_HOST_TRANSACTIONS
+	 	where 
+	 		host_no = #{no} 
+	 </select>
+  
+  
+	
+  <!-- List<HostTransaction> getHostTransactionByHostNo(int no, int begin, int end); -->
+  <select id="getHostTransactionByHostNo" parameterType="int" resultType="com.hoge.vo.other.HostTransaction">
+		 select
+		 	TRANSACTION_TYPE AS type,
+		 	TRANSACTION_AMOUNT AS amount,
+		 	TRANSACTION_DATE AS createdDate,
+		 	HOST_NO AS hostNo
+		 from (select 
+		 	TRANSACTION_TYPE,
+		 	TRANSACTION_AMOUNT,
+		 	TRANSACTION_DATE,
+		 	HOST_NO,
+		 	row_number() over (order by TRANSACTION_DATE desc) rn
+		  from TB_FINAL_HOST_TRANSACTIONS
+		  where HOST_NO = #{no})
+		  where rn between #{begin} and #{end}
+		  
+  </select>
+  
+  
+
+</mapper>

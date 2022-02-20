@@ -1,0 +1,495 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.QnAMapper">
+  
+  
+  
+	<!-- // 성하민
+	List<AdminHostQnADto> getHostQnAsByCriteria(CriteriaAdminQnA criteriaAdminQnA);
+	 -->
+	<select id="getHostQnAsByCriteria" parameterType="com.hoge.form.CriteriaAdminQnA" resultType="com.hoge.dto.AdminHostQnADto">
+		select 	
+				QUESTION_NO as questionNo,
+			 	HOST_USER_NO as userNo,
+			 	HOST_NO as hostNo,
+			 	HOST_NAME as hostName,
+			 	HOSTING_TYPE as hostType,
+			 	STATUS as hostStatus,
+			 	STATUS_DETAIL as statusDetail,
+			 	GRADE_NAME as gradeName,
+			 	QUESTION_CATEGORY as category,
+			 	QUESTION_TITLE as title,
+			 	QUESTION_CONTENT as content,
+			 	QUESTION_DATE as questionDate,
+			 	QUESTION_ANSWERED as answered,
+			 	ANSWER_CONTENT as answerContent,
+			 	ANSWER_UPDATE_DATE as answerUpdateDate,
+			 	ANSWER_MODIFIED as answerModified
+		from (
+			select 	
+				q.QUESTION_NO,
+			 	h.HOST_USER_NO,
+			 	h.HOST_NO,
+			 	h.HOST_NAME,
+			 	h.HOSTING_TYPE,
+			 	h.STATUS,
+			 	h.STATUS_DETAIL,
+			 	h.GRADE_NAME,
+			 	q.QUESTION_CATEGORY,
+			 	q.QUESTION_TITLE,
+			 	q.QUESTION_CONTENT,
+			 	q.QUESTION_DATE,
+			 	q.QUESTION_ANSWERED,
+			 	q.ANSWER_CONTENT,
+			 	q.ANSWER_UPDATE_DATE,
+			 	q.ANSWER_MODIFIED,
+	 			row_number() over (order by q.QUESTION_DATE desc) rn
+			from 
+				TB_FINAL_HOST_QNAS q, TB_FINAL_HOSTS h
+			where q.QUESTION_ANSWERED = #{answered}
+			and q.HOST_NO = H.HOST_NO			
+			<if test="category != null">
+				and q.QUESTION_CATEGORY = #{category} 
+			</if>
+			<if test="grade != null">
+				and h.GRADE_NAME = #{grade} 
+			</if>
+			<if test="approval != null">
+				and h.STATUS = #{approval} 
+			</if>
+			<if test="hostType != 0">
+				and h.HOSTING_TYPE = #{hostType} 
+			</if>
+			<if test="opt != null and value != null">
+				<choose>
+					<when test="opt == '회원번호'">
+						and h.HOST_USER_NO = #{value} 
+					</when>
+					<when test="opt == '호스트번호'">
+						and h.HOST_NO = #{value}
+					</when>
+					<when test="opt == '호스트이름'">
+						and h.HOST_NAME like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '제목'">
+						and q.QUESTION_TITLE like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '내용'">
+						and q.QUESTION_CONTENT like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>
+		)
+		where rn between #{beginIndex} and #{endIndex}
+	</select> 
+  
+<!-- 성하민
+			 int getHostQnAsTotalRows(CriteriaAdminQnA criteriaAdminQnA);
+	 -->
+	 <select id="getHostQnAsTotalRows" parameterType="com.hoge.form.CriteriaAdminQnA" resultType="int">
+		select count(*)
+		from TB_FINAL_HOST_QNAS q, TB_FINAL_HOSTS h
+		where q.QUESTION_ANSWERED = #{answered}
+		and q.HOST_NO = H.HOST_NO	
+		
+			<if test="category != null">
+				and q.QUESTION_CATEGORY = #{category} 
+			</if>
+			<if test="grade != null">
+				and h.GRADE_NAME = #{grade} 
+			</if>
+			<if test="approval != null">
+				and h.STATUS = #{approval} 
+			</if>
+			<if test="hostType != 0">
+				and h.HOSTING_TYPE = #{hostType} 
+			</if>
+			<if test="opt != null and value != null">
+				<choose>
+					<when test="opt == '회원번호'">
+						and h.HOST_USER_NO = #{value} 
+					</when>
+					<when test="opt == '호스트번호'">
+						and h.HOST_NO = #{value}
+					</when>
+					<when test="opt == '호스트이름'">
+						and h.HOST_NAME like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '제목'">
+						and q.QUESTION_TITLE like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '내용'">
+						and q.QUESTION_CONTENT like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>
+	</select>
+	 
+	 
+	
+	 
+ <!-- 성하민  	AdminHostQnADto getHostQnADtobyQnANo(int no);-->
+  <select id="getHostQnADtobyQnANo" parameterType="int" resultType="com.hoge.dto.AdminHostQnADto">
+		select 	
+			q.QUESTION_NO as questionNo,
+		 	h.HOST_USER_NO as userNo,
+		 	h.HOST_NO as hostNo,
+		 	h.HOST_NAME as hostName,
+		 	h.HOSTING_TYPE as hostType,
+		 	h.STATUS as hostStatus,
+		 	h.STATUS_DETAIL as statusDetail,
+		 	h.GRADE_NAME as gradeName,
+		 	q.QUESTION_CATEGORY as category,
+		 	q.QUESTION_TITLE as title,
+		 	q.QUESTION_CONTENT as content,
+		 	q.QUESTION_DATE as questionDate,
+		 	q.QUESTION_ANSWERED as answered,
+		 	q.ANSWER_CONTENT as answerContent,
+		 	q.ANSWER_UPDATE_DATE as answerUpdateDate,
+		 	q.ANSWER_MODIFIED as answerModified
+			from TB_FINAL_host_QNAS q, TB_FINAL_HOSTS h
+			where q.QUESTION_NO = #{no}
+			and q.HOST_NO = H.HOST_NO
+	</select> 
+   	
+  	
+  	
+  	
+  	
+  
+  
+    
+<!-- 성하민  	void updateHostQnA(HostQnA hostQnA);  -->
+<update id="updateHostQnA" parameterType="com.hoge.vo.other.HostQnA">
+		update 
+			TB_FINAL_HOST_QNAS
+			set
+		 		QUESTION_ANSWERED = 'Y',
+		 		ANSWER_CONTENT = #{answerContent},
+		 		ANSWER_UPDATE_DATE = sysdate,
+	 			ANSWER_MODIFIED = #{answerModified}
+		where
+			QUESTION_NO = #{no}
+	</update>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+<!-- 성하민  	void updateUserQnA(UserQnA userQnA); -->
+<update id="updateUserQnA" parameterType="com.hoge.vo.other.UserQnA">
+		update 
+			TB_FINAL_USER_QNAS
+			set
+		 		QUESTION_ANSWERED = 'Y',
+		 		ANSWER_CONTENT = #{answerContent},
+		 		ANSWER_UPDATE_DATE = sysdate,
+	 			ANSWER_MODIFIED = #{answerModified}
+		where
+			QUESTION_NO = #{no}
+	</update>
+
+<!-- 성하민  HostQnA getHostQnAbyQnANo(int no); -->
+ <select id="getHostQnAbyQnANo" parameterType="int" resultType="com.hoge.vo.other.HostQnA">
+		select 	
+			QUESTION_NO as no,
+		 	host_NO as hostNo,
+		 	QUESTION_CATEGORY as category,
+		 	QUESTION_TITLE as title,
+		 	QUESTION_CONTENT as content,
+		 	QUESTION_DATE as questionDate,
+		 	QUESTION_ANSWERED as answered,
+		 	ANSWER_CONTENT as answerContent,
+		 	ANSWER_UPDATE_DATE as answerUpdateDate,
+		 	ANSWER_MODIFIED as answerModified
+		 	
+			from TB_FINAL_HOST_QNAS
+			where QUESTION_NO = #{no}
+	</select> 
+
+
+
+<!-- 성하민  	UserQnA getUserQnAbyQnANo(int no); -->
+ <select id="getUserQnAbyQnANo" parameterType="int" resultType="com.hoge.vo.other.UserQnA">
+		select 	
+			QUESTION_NO as no,
+		 	USER_NO as userNo,
+		 	QUESTION_CATEGORY as category,
+		 	QUESTION_TITLE as title,
+		 	QUESTION_CONTENT as content,
+		 	QUESTION_DATE as questionDate,
+		 	QUESTION_ANSWERED as answered,
+		 	ANSWER_CONTENT as answerContent,
+		 	ANSWER_UPDATE_DATE as answerUpdateDate,
+		 	ANSWER_MODIFIED as answerModified
+		 	
+			from TB_FINAL_USER_QNAS
+			where QUESTION_NO = #{no}
+	</select> 
+
+
+
+<!-- 성하민  	AdminUserQnADto getUserQnADtobyQnANo(int no);-->
+  <select id="getUserQnADtobyQnANo" parameterType="int" resultType="com.hoge.dto.AdminUserQnADto">
+		select 	
+			q.QUESTION_NO as questionNo,
+		 	q.USER_NO as userNo,
+		 	q.QUESTION_CATEGORY as category,
+		 	q.QUESTION_TITLE as title,
+		 	q.QUESTION_CONTENT as content,
+		 	q.QUESTION_DATE as questionDate,
+		 	q.QUESTION_ANSWERED as answered,
+		 	q.ANSWER_CONTENT as answerContent,
+		 	q.ANSWER_UPDATE_DATE as answerUpdateDate,
+		 	q.ANSWER_MODIFIED as answerModified,
+		 	u.user_id as userId,
+	 		u.user_name as userName
+			from TB_FINAL_USER_QNAS q, tb_final_users u
+			where q.QUESTION_NO = #{no}
+			and q.USER_NO = u.USER_NO
+	</select> 
+  
+  
+  
+   <!-- 성하민
+			int getUserQnAsTotalRows(CriteriaAdminQnA criteriaAdminQnA);
+	 -->
+	 <select id="getUserQnAsTotalRows" parameterType="com.hoge.form.CriteriaAdminQnA" resultType="int">
+		select count(*)
+		from TB_FINAL_USER_QNAS q, tb_final_users u
+		where q.QUESTION_ANSWERED = #{answered}
+		and q.USER_NO = u.USER_NO
+			<if test="category != null">
+				and q.QUESTION_CATEGORY = #{category} 
+			</if>
+			<if test="opt != null and value != null">
+				<choose>
+					<when test="opt == '회원번호'">
+						and u.USER_NO = #{value} 
+					</when>
+					<when test="opt == '아이디'">
+						and u.user_id like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '이름'">
+						and u.user_name like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '제목'">
+						and q.QUESTION_TITLE like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '내용'">
+						and q.QUESTION_CONTENT like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>
+	</select>
+
+			
+	<!-- // 성하민
+	List<AdminUserQnADto> getUserQnAsByCriteria(CriteriaAdminUser criteriaAdminQnA);
+	 -->
+	<select id="getUserQnAsByCriteria" parameterType="com.hoge.form.CriteriaAdminQnA" resultType="com.hoge.dto.AdminUserQnADto">
+		select 	
+			QUESTION_NO as questionNo,
+		 	USER_NO as userNo,
+		 	QUESTION_CATEGORY as category,
+		 	QUESTION_TITLE as title,
+		 	QUESTION_CONTENT as content,
+		 	QUESTION_DATE as questionDate,
+		 	QUESTION_ANSWERED as answered,
+		 	ANSWER_CONTENT as answerContent,
+		 	ANSWER_UPDATE_DATE as answerUpdateDate,
+		 	ANSWER_MODIFIED as answerModified,
+		 	user_id as userId,
+	 		user_name as userName
+		from (
+			select 	
+				q.QUESTION_NO,
+		 		q.USER_NO,
+		 		q.QUESTION_CATEGORY,
+		 		q.QUESTION_TITLE,
+		 		q.QUESTION_CONTENT,
+		 		q.QUESTION_DATE,
+		 		q.QUESTION_ANSWERED,
+		 		q.ANSWER_CONTENT,
+		 		q.ANSWER_UPDATE_DATE,
+		 		q.ANSWER_MODIFIED,
+		 		u.user_id,
+	 			u.user_name,
+	 			row_number() over (order by q.QUESTION_DATE desc) rn
+			from TB_FINAL_USER_QNAS q, tb_final_users u
+			where q.QUESTION_ANSWERED = #{answered}
+			and q.USER_NO = u.USER_NO
+			<if test="category != null">
+				and q.QUESTION_CATEGORY = #{category} 
+			</if>
+			<if test="opt != null and value != null">
+				<choose>
+					<when test="opt == '회원번호'">
+						and u.USER_NO = #{value} 
+					</when>
+					<when test="opt == '아이디'">
+						and u.user_id like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '이름'">
+						and u.user_name like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '제목'">
+						and q.QUESTION_TITLE like '%' || #{value} || '%'
+					</when>
+					<when test="opt == '내용'">
+						and q.QUESTION_CONTENT like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>
+		)
+		where rn between #{beginIndex} and #{endIndex}
+	</select> 
+  
+  
+  
+  
+  
+  
+  
+  	<!-- 성하민
+  	void insertUserQnA(UserQnA userQnA); 
+  	-->
+  	<insert id="insertUserQnA" parameterType="com.hoge.vo.other.UserQnA">
+		INSERT into TB_FINAL_USER_QNAS
+		(
+		QUESTION_NO,
+		USER_NO,
+		QUESTION_CATEGORY,
+		QUESTION_TITLE,
+		QUESTION_CONTENT
+		)
+		VALUES
+			(FINAL_USER_QNA_NO_SEQ.NEXTVAL,
+			#{userNo},
+			#{category},
+			#{title},
+			#{content}
+			)
+	</insert>
+  
+  
+  	<!-- 성하민
+  	void insertHostQnA(HostQnA hostQnA); 
+  	-->
+  	<insert id="insertHostQnA" parameterType="com.hoge.vo.other.HostQnA">
+		INSERT into TB_FINAL_HOST_QNAS
+		(
+		QUESTION_NO,
+		HOST_NO,
+		QUESTION_CATEGORY,
+		QUESTION_TITLE,
+		QUESTION_CONTENT
+		)
+		VALUES
+			(FINAL_HOST_QNA_NO_SEQ.NEXTVAL,
+			#{hostNo},
+			#{category},
+			#{title},
+			#{content}
+			)
+	</insert>
+  
+  
+  <!--  성하민
+  	int getUserQnACountByUserNo(int no); -->
+  <select id="getUserQnACountByUserNo" parameterType="int" resultType="int">
+	 	select
+	 		count(*)
+	 	from
+	 		TB_FINAL_USER_QNAS
+	 	where 
+	 		user_no = #{no} 
+	 </select>
+	 
+	 
+	 
+	  <!-- List<UserQnA> getUserQnAListByUserNo(@Param("no") int no, @Param("begin") int begin, @Param("end") int end);-->
+   <select id="getUserQnAListByUserNo" parameterType="int" resultType="com.hoge.vo.other.UserQnA">
+	 	select
+	 		QUESTION_NO as no,
+	 		user_no as userNo,
+	 		QUESTION_CATEGORY as category,
+	 		QUESTION_TITLE as title,
+	 		QUESTION_CONTENT as content,
+	 		QUESTION_DATE as questionDate,
+	 		QUESTION_ANSWERED as answered,
+	 		ANSWER_CONTENT as answerContent,
+	 		ANSWER_UPDATE_DATE as answerUpdateDate,
+	 		ANSWER_MODIFIED as answerModified
+	 	from
+	 		(select 
+		 			QUESTION_NO,
+		 			user_no,
+		 			QUESTION_CATEGORY,
+		 			QUESTION_TITLE,
+		 			QUESTION_CONTENT,
+		 			QUESTION_DATE,
+		 			QUESTION_ANSWERED,
+		 			ANSWER_CONTENT,
+		 			ANSWER_UPDATE_DATE,
+		 			ANSWER_MODIFIED,
+		 			row_number() over (order by QUESTION_DATE desc) rn
+	 		from	TB_FINAL_user_QNAS
+	 		where 
+	 			user_no = #{no} )
+	 		where rn between #{begin} and #{end}
+	 </select>
+  
+  <!--  성하민
+  	int getHostQnACountByHostNo(int no); -->
+  <select id="getHostQnACountByHostNo" parameterType="int" resultType="int">
+	 	select
+	 		count(*)
+	 	from
+	 		TB_FINAL_HOST_QNAS
+	 	where 
+	 		host_no = #{no} 
+	 </select>
+  
+  
+  
+	<!-- 성하민
+		List<HostQnA> getHostQnAListByHostNo(int no);
+	 -->
+	 <select id="getHostQnAListByHostNo" parameterType="int" resultType="com.hoge.vo.other.HostQnA">
+	 	select
+	 		QUESTION_NO as no,
+	 		HOST_NO as hostNo,
+	 		QUESTION_CATEGORY as category,
+	 		QUESTION_TITLE as title,
+	 		QUESTION_CONTENT as content,
+	 		QUESTION_DATE as questionDate,
+	 		QUESTION_ANSWERED as answered,
+	 		ANSWER_CONTENT as answerContent,
+	 		ANSWER_UPDATE_DATE as answerUpdateDate,
+	 		ANSWER_MODIFIED as answerModified
+	 	from
+	 		(select 
+		 			QUESTION_NO,
+		 			HOST_NO,
+		 			QUESTION_CATEGORY,
+		 			QUESTION_TITLE,
+		 			QUESTION_CONTENT,
+		 			QUESTION_DATE,
+		 			QUESTION_ANSWERED,
+		 			ANSWER_CONTENT,
+		 			ANSWER_UPDATE_DATE,
+		 			ANSWER_MODIFIED,
+		 			row_number() over (order by QUESTION_DATE desc) rn
+	 		from	TB_FINAL_HOST_QNAS
+	 		where 
+	 			host_no = #{no} )
+	 		where rn between #{begin} and #{end}
+	 </select>
+	 
+
+</mapper>

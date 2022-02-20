@@ -1,0 +1,216 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.HomeMapper">
+	
+	<select id="getNewSixAccommoMainImages" resultType="com.hoge.dto.AccMainDto">
+	 	select host_no as hostNo, 
+	 		   host_main_image as mainImage,
+	 		   accommo_no as accNo,
+	 		   accommo_name as accName, 
+	 		   accommo_intro_title as accIntroTitle
+		from (select hosts.host_no, 
+					 hosts.host_main_image,
+					 accommos.accommo_no, 
+					 accommos.accommo_name, 
+					 accommos.accommo_intro_title
+        	  from tb_final_hosts hosts, tb_final_accommodations accommos
+        	  where hosts.host_no = accommos.host_no
+        	  and hosts.hosting_type = 1
+       		  and hosts.status = 'Y'
+        	  and hosts.host_main_image is not null
+        	  order by hosts.host_no desc)
+		where rownum &lt;= 6
+	 </select>
+	 
+	 <select id="getAccMainImage" resultType="com.hoge.vo.accommo.AccommoImage" parameterType="int">
+		select h.host_main_image as image
+  		from tb_final_discount_promotions p, tb_final_hosts h
+  		where  p.host_no = h.host_no
+  		and p.discount_promotion_no = #{value}
+	 </select>
+	 
+	 <select id="getAccMainImageByOfferNo" resultType="com.hoge.vo.accommo.AccommoImage" parameterType="int">
+		select h.host_main_image as image
+  		from tb_final_offer_promotions p, tb_final_hosts h
+  		where  p.host_no = h.host_no
+  		and p.offer_promotion_no = #{value}
+	 </select>
+	
+	<select id="getMinMaxByHostNo" resultType="com.hoge.dto.HomeAccommoDto" parameterType="int">
+		select  
+            min(r.weekdays_price) as minPrice,
+			max(r.peak_season_price) as maxPrice,
+            min(r.standard_number) as minNumber,
+			max(r.maximum_number) as maxNumber
+		from
+            tb_final_accommodations a,
+            tb_final_rooms r
+		where 
+			a.accommo_no = r.accommo_no
+        and 
+        	a.host_no = #{value}
+		group by 
+			a.host_no
+	</select>
+	
+	<select id="getAllAccommodation" resultType="com.hoge.dto.HomeAccommoDto" parameterType="com.hoge.form.Criteria">
+		<!--  
+		select *
+		from
+			( 
+		-->
+		select
+	   		row_number() over (order by a.accommo_no) rn,
+			a.accommo_no as accommoNo, 
+			a.host_no as hostNo, 
+			a.accommo_type as accommoType, 
+			a.accommo_name as accommoName, 
+			a.accommo_region_depth1 as accommoRegionDepth1, 
+			a.accommo_region_depth2 as accommoRegionDepth2,
+	        h.status as status,
+	        h.host_main_image as mainImage,
+	        min(r.weekdays_price) as minPrice,
+			max(r.peak_season_price) as maxPrice,
+	        min(r.standard_number) as minNumber,
+			max(r.maximum_number) as maxNumber
+		from
+	        tb_final_accommodations a,
+	        tb_final_rooms r,
+	        tb_final_hosts h
+        where 
+        	a.accommo_no = r.accommo_no
+        and 
+        	a.host_no = h.host_no
+        and 
+        	h.status = 'Y'
+        group by 
+           a.accommo_no, a.host_no, a.accommo_type, 
+           a.accommo_name,a.accommo_region_depth1, a.accommo_region_depth2, 
+           h.status,h.host_main_image, a.accommo_registered_date
+        order by  
+           a.accommo_registered_date desc
+        <!--
+		         )
+		where rn between #{beginIndex} and #{endIndex}
+		--> 
+	</select>
+	
+	<select id="getAllAccommodationTotalRows" resultType="int">
+		select 
+			count(*)
+  		from(select      
+	   			row_number() over (order by a.accommo_no) rn,
+				a.accommo_no as accommoNo, 
+				a.host_no as hostNo, 
+				a.accommo_type as accommoType, 
+				a.accommo_name as accommoName, 
+				a.accommo_region_depth1 as regionDepth1, 
+				a.accommo_region_depth2 as regionDepth2,
+	        	h.status as status,
+           	 	h.host_main_image as mainImage,
+	        	min(r.weekdays_price) as minWeekdaysPrice,
+				max(r.peak_season_price) as maxPeakSeasonPrice,
+	        	min(r.standard_number) as minNumber,
+				max(r.maximum_number) as maxNumber
+			 from
+		        tb_final_accommodations a,
+		        tb_final_rooms r,
+		        tb_final_hosts h
+	         where 
+	        	a.accommo_no = r.accommo_no
+	         and 
+	        	a.host_no = h.host_no
+	         and 
+	        	h.status = 'Y'
+	         group by 
+	            a.accommo_no, a.host_no, a.accommo_type, a.accommo_name,
+	            a.accommo_region_depth1, a.accommo_region_depth2, 
+	            h.status,h.host_main_image)
+	</select>
+	
+	<select id="getNewSixActivityMainInfo" resultType="com.hoge.dto.ActMainDto">
+	 	select hostNo,mainImage,actNo,actName,actIntroTitle,dept1,dept2
+		from (select hosts.host_no as hostNo, 
+					 hosts.host_main_image as mainImage,
+					 activities.activity_no as actNo, 
+					 activities.activity_name as actName, 
+					 activities.activity_intro_title as actIntroTitle,
+                     activities.activity_region_depth1 as dept1,
+                     activities.activity_region_depth2 as dept2
+        	  from tb_final_hosts hosts, tb_final_activities activities
+        	  where hosts.host_no = activities.host_no
+        	  and hosts.hosting_type = 2
+       		  and hosts.status = 'Y'
+        	  and hosts.host_main_image is not null
+        	  order by hosts.host_no desc)
+		 where rownum &lt;= 6
+	 </select>
+	 
+	 <select id="getDiscountPromotionNo" resultType="com.hoge.dto.HomeActivityDto">
+	 	select 
+	 		disp.discount_promotion_no as discountPromotionNo, 
+	 		act.activity_no as activityNo, 
+	 		hosts.host_no as hostNo
+		from 
+			tb_final_discount_promotions disp, 
+			tb_final_activities act, 
+			tb_final_hosts hosts
+		where 
+			disp.host_no = act.host_no
+		and 
+			act.host_no = hosts.host_no
+		and 
+			disp.status = 'Y'
+	 </select>
+	 
+	 <select id="getOfferPromotionNo" resultType="com.hoge.dto.HomeActivityDto">
+	 	select 
+	 		offers.offer_promotion_no as offerPromotionNo, 
+	 		act.activity_no as activityNo, 
+	 		hosts.host_no as hostNo
+		from 
+			tb_final_offer_promotions offers, 
+			tb_final_activities act, 
+			tb_final_hosts hosts
+		where 
+			offers.host_no = act.host_no
+		and 
+			act.host_no = hosts.host_no
+		and 
+			offers.status = 'Y'
+	 </select>
+	 
+	 <select id="getActivityPromotion" resultType="com.hoge.dto.HomeActivityDto">
+	 	select actPro.promotionNo, actPro.activityNo, actPro.introContent, actPro.activityName, 
+        	   actPro.deadlineDate, actPro.depth1, actPro.depth2, actPro.mainImage
+		from (select disp.discount_promotion_no as promotionNo,
+					 act.activity_no as activityNo, 
+       				 disp.promotion_intro_content as introContent, 
+       				 act.activity_name as activityName,
+       			     trunc(disp.promotion_ending_date - disp.promotion_starting_date) as deadlineDate, 
+       				 act.activity_region_depth1 as depth1, 
+      		 		 act.activity_region_depth2 as depth2,
+       				 hosts.host_main_image as mainImage
+			  from 
+			  		tb_final_discount_promotions disp, tb_final_activities act, tb_final_hosts hosts
+			  where disp.host_no = act.host_no
+			  and hosts.host_no = act.host_no
+			  and disp.status = 'Y'
+			union all
+			  select offers.offer_promotion_no as promotionNo,
+			  		 act.activity_no as activityNo, 
+       				 offers.promotion_intro_content as introContent, 
+       				 act.activity_name as activityName,
+       				 trunc(offers.promotion_ending_date - offers.promotion_starting_date) as deadlineDate, 
+       				 act.activity_region_depth1 as depth1, 
+       				 act.activity_region_depth2 as depth2,
+       				 hosts.host_main_image as mainImage
+			  from 
+			  		 tb_final_offer_promotions offers, tb_final_activities act, tb_final_hosts hosts
+			  where offers.host_no = act.host_no
+			  and hosts.host_no = act.host_no
+			  and offers.status = 'Y') actPro
+		order by deadlineDate desc
+	 </select>
+	
+</mapper>

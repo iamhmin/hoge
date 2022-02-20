@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.WithdrawalMapper">
+  
+  <!--  성하민
+  	int getWithdrawalCountByHostNo(int no); -->
+  <select id="getWithdrawalCountByHostNo" parameterType="int" resultType="int">
+	 	select
+	 		count(*)
+	 	from
+	 		TB_FINAL_WITHDRAWALS
+	 	where 
+	 		host_no = #{no} 
+	 </select>
+  
+  <!--  성하민
+  	int getApprovedWithdrawalCount(Criteria criteria); -->
+  <select id="getApprovedWithdrawalCount" parameterType="com.hoge.form.Criteria" resultType="int">
+	 	select
+	 		count(*)
+	 	from	
+	 			TB_FINAL_WITHDRAWALS w, tb_final_hosts h
+	 		where h.host_no = w.host_no
+	 		and w.WITHDRAWAL_STATUS = 'Y'
+	 			<if test="opt != null and value != null">
+				<choose>
+					<when test="opt == '호스트번호'">
+						and w.host_no = #{value}
+					</when>
+					<when test="opt == '호스트이름'">
+						and h.host_name like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>	
+	 </select>
+  <!--  성하민
+  	int getWaitingWithdrawalCount(Criteria criteria); -->
+  <select id="getWaitingWithdrawalCount" parameterType="com.hoge.form.Criteria" resultType="int">
+	 	select
+	 		count(*)
+	 	from	
+	 			TB_FINAL_WITHDRAWALS w, tb_final_hosts h
+	 		where h.host_no = w.host_no
+	 		and w.WITHDRAWAL_STATUS = 'N'
+	 			<if test="opt != null and value != null">
+				<choose>
+					<when test="opt == '호스트번호'">
+						and w.host_no = #{value}
+					</when>
+					<when test="opt == '호스트이름'">
+						and h.host_name like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>	
+	 </select>
+  
+  
+<!-- 성하민  	void approveWithdrawal(int withdrawalNo); -->
+<update id="approveWithdrawal" parameterType="int">
+		update 
+			TB_FINAL_WITHDRAWALS
+			set
+		 		WITHDRAWAL_STATUS = 'Y'
+		where
+			WITHDRAWAL_NO = #{withdrawalNo}
+	</update>
+
+  <!-- Withdrawal getWithdrawalByWithdrawalNo(int no);-->
+   <select id="getWithdrawalByWithdrawalNo" parameterType="int" resultType="com.hoge.vo.other.Withdrawal">
+	 	select
+	 			WITHDRAWAL_NO as no,
+	 			HOST_NO as hostNo,
+				ACCOUNT_NUMBER as accountNumber,
+				BANK_NAME as bankName,
+				ACCOUT_HOLDER_NAME as accountHolderName,
+				MONEY_AMOUNT as amount,
+		 		WITHDRAWAL_STATUS as status,
+		 		WITHDRAWAL_CREATED_DATE as createdDate
+	 		from 
+	 			TB_FINAL_WITHDRAWALS
+	 		where WITHDRAWAL_NO = #{no}
+	 </select>
+  <!-- List<WithdrawalHostDto> getWaitingWithdrawalList(Criteria criteria);-->
+   <select id="getWaitingWithdrawalList" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.WithdrawalHostDto">
+	 	select
+	 			WITHDRAWAL_NO as withdrawalNo,
+	 			HOST_NO as hostNo,
+	 			HOST_NAME as hostName,
+				ACCOUNT_NUMBER as accountNumber,
+				BANK_NAME as bankName,
+				ACCOUT_HOLDER_NAME as accountHolderName,
+				MONEY_AMOUNT as amount,
+		 		WITHDRAWAL_STATUS as status,
+		 		WITHDRAWAL_CREATED_DATE as createdDate
+	 	from 
+	 		(select 
+	 			w.WITHDRAWAL_NO,
+		 		w.HOST_NO,
+				w.ACCOUNT_NUMBER,
+				h.HOST_NAME,
+				w.BANK_NAME,
+				w.ACCOUT_HOLDER_NAME,
+				w.MONEY_AMOUNT,
+		 		w.WITHDRAWAL_STATUS,
+		 		w.WITHDRAWAL_CREATED_DATE,
+		 		row_number() over (order by WITHDRAWAL_CREATED_DATE desc) rn
+	 		from	
+	 			TB_FINAL_WITHDRAWALS w, tb_final_hosts h
+	 		where h.host_no = w.host_no
+	 		and w.WITHDRAWAL_STATUS = 'N'
+	 			<if test="opt != null and value != null">
+				<choose>
+					<when test="opt == '호스트번호'">
+						and w.host_no = #{value}
+					</when>
+					<when test="opt == '호스트이름'">
+						and h.host_name like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>	
+			)
+	 		where rn between #{beginIndex} and #{endIndex}
+	 </select>
+	 
+	 
+  <!-- List<WithdrawalHostDto> getApprovedWithdrawalList(Criteria criteria);-->
+   <select id="getApprovedWithdrawalList" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.WithdrawalHostDto">
+	 	select
+	 			HOST_NO as hostNo,
+	 			HOST_NAME as hostName,
+				ACCOUNT_NUMBER as accountNumber,
+				BANK_NAME as bankName,
+				ACCOUT_HOLDER_NAME as accountHolderName,
+				MONEY_AMOUNT as amount,
+		 		WITHDRAWAL_STATUS as status,
+		 		WITHDRAWAL_CREATED_DATE as createdDate
+	 	from 
+	 		(select 
+		 		w.HOST_NO,
+				w.ACCOUNT_NUMBER,
+				h.HOST_NAME,
+				w.BANK_NAME,
+				w.ACCOUT_HOLDER_NAME,
+				w.MONEY_AMOUNT,
+		 		w.WITHDRAWAL_STATUS,
+		 		w.WITHDRAWAL_CREATED_DATE,
+		 		row_number() over (order by WITHDRAWAL_CREATED_DATE desc) rn
+	 		from	
+	 			TB_FINAL_WITHDRAWALS w, tb_final_hosts h
+	 		where h.host_no = w.host_no
+	 		and w.WITHDRAWAL_STATUS = 'Y'
+	 			<if test="opt != null and value != null">
+				<choose>
+					<when test="opt == '호스트번호'">
+						and w.host_no = #{value}
+					</when>
+					<when test="opt == '호스트이름'">
+						and h.host_name like '%' || #{value} || '%'
+					</when>
+				</choose>
+			</if>	
+			)
+	 		where rn between #{beginIndex} and #{endIndex}
+	 </select>
+	 
+  <!-- List<Withdrawal> getHostWithdrawalListByHostNo(@Param("no") int no, @Param("begin") int begin, @Param("end") int end);-->
+   <select id="getHostWithdrawalListByHostNo" parameterType="int" resultType="com.hoge.vo.other.Withdrawal">
+	 	select
+	 			HOST_NO as hostNo,
+				ACCOUNT_NUMBER as accountNumber,
+				BANK_NAME as bankName,
+				ACCOUT_HOLDER_NAME as accountHolderName,
+				MONEY_AMOUNT as amount,
+		 		WITHDRAWAL_STATUS as status,
+		 		WITHDRAWAL_CREATED_DATE as createdDate
+	 	from 
+	 		(select 
+		 		HOST_NO,
+				ACCOUNT_NUMBER,
+				BANK_NAME,
+				ACCOUT_HOLDER_NAME,
+				MONEY_AMOUNT,
+		 		WITHDRAWAL_STATUS,
+		 		WITHDRAWAL_CREATED_DATE,
+		 		row_number() over (order by WITHDRAWAL_CREATED_DATE desc) rn
+	 		from	
+	 			TB_FINAL_WITHDRAWALS
+	 		where 
+	 			HOST_NO = #{no} )
+	 		where rn between #{begin} and #{end}
+	 </select>
+
+
+
+   	<!-- 성하민
+  void insertWithdrawal(Withdrawal withdrawal); 
+  	-->
+  	<insert id="insertWithdrawal" parameterType="com.hoge.vo.other.Withdrawal">
+		INSERT into TB_FINAL_WITHDRAWALS
+		(
+		WITHDRAWAL_NO,
+		HOST_NO,
+		ACCOUNT_NUMBER,
+		BANK_NAME,
+		ACCOUT_HOLDER_NAME,
+		MONEY_AMOUNT
+		)
+		VALUES
+			(
+			FINAL_WITHDRAWAL_NO_SEQ.NEXTVAL,
+			#{hostNo},
+			#{accountNumber},
+			#{bankName},
+			#{accountHolderName},
+			#{amount}
+			)
+	</insert>
+  	<!-- 성하민
+  int getWithdrawalwaitingAmountByHostNo(int no); 
+  	-->
+  	<select id="getWithdrawalwaitingAmountByHostNo" parameterType="int" resultType="_long">
+  	select sum(MONEY_AMOUNT)
+	from TB_FINAL_WITHDRAWALS
+	where WITHDRAWAL_STATUS = 'N'
+	and host_no = #{no}
+	group by host_no
+  	</select>
+  
+
+</mapper>

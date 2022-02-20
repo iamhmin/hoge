@@ -1,0 +1,565 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.hoge.mapper.PromotionMapper">
+	
+	<!-- 성하민 증정프로모션 시간 지난거 종료로 변경-->
+	<update id="closeOfferPromotion">
+		update 
+		TB_FINAL_OFFER_PROMOTIONS
+		set status = 'D'
+		where PROMOTION_ENDING_DATE &lt;= sysdate
+		and status = 'Y'
+	</update>
+	
+	<!-- 성하민 할인프로모션 시간 지난거 종료로 변경-->
+	<update id="closeDiscountPromotion">
+		update 
+		TB_FINAL_DISCOUNT_PROMOTIONS
+		set status = 'D'
+		where PROMOTION_ENDING_DATE &lt;= sysdate
+		and status = 'Y'
+	</update>
+	
+	
+	
+	<select id="getPromotionDiscount" resultType="com.hoge.vo.other.PromotionDiscount">
+		select 
+			p.discount_promotion_no as no,
+			p.promotion_intro_content as introContent,
+			p.weekdays_discount_rate as weekdaysDiscountRate,
+			p.weekend_discount_rate as weekendDiscountRate,
+			p.peak_season_discount_rate as peakSeasonDiscountRate,
+			p.promotion_starting_date as startingDate,
+			p.promotion_ending_date as endingDate
+		from 
+			tb_final_accommodations a,
+			tb_final_discount_promotions p
+		where a.host_no = p.host_no
+			and a.accommo_no = #{accommoNo}
+			and ((#{checkIn} between p.promotion_starting_date and p.promotion_ending_date) or 
+			(#{checkOut} between p.promotion_starting_date and p.promotion_ending_date))
+	</select>
+	
+	<select id="getOfferPromotionNo" resultType="int">
+		select 
+			p.offer_promotion_no as no
+		from 
+			tb_final_accommodations a,
+			tb_final_offer_promotions p
+		where a.host_no = p.host_no
+			and a.accommo_no = #{accommoNo}
+			and ((#{checkIn} between p.promotion_starting_date and p.promotion_ending_date) or 
+			(#{checkOut} between p.promotion_starting_date and p.promotion_ending_date))
+	</select>
+
+	
+	
+	<!--  void updatePromotionDiscount(PromotionDiscount promotionDiscount);-->
+	<update id="updatePromotionDiscount" parameterType="com.hoge.vo.other.PromotionDiscount">
+		update tb_final_discount_promotions
+		set status =  #{status}
+		where discount_promotion_no = #{no}
+	</update>	
+		
+	<!--  void updatePromotionOffer(PromotionOffer PromotionOffer);-->
+	<update id="updatePromotionOffer" parameterType="com.hoge.vo.other.PromotionOffer">
+		update TB_FINAL_OFFER_PROMOTIONS
+		set status =  #{status}
+		where offer_promotion_no = #{no}
+	</update>	
+		
+		
+		
+		
+	<!--  PromotionDiscount getPromotionDiscountByPromotionNo(int no);-->
+	<select id="getPromotionDiscountByPromotionNo" parameterType="int" resultType="com.hoge.vo.other.PromotionDiscount">
+		select 
+		discount_promotion_no as no,
+		promotion_intro_content as introContent,
+		weekdays_discount_rate as weekdaysDiscountRate,
+		weekend_discount_rate as weekendDiscountRate,
+		peak_season_discount_rate as peakSeasonDiscountRate,
+		promotion_starting_date as startingDate,
+		promotion_ending_date as endingDate,
+		host_no as hostNo,
+		PROMOTION_REGISTERED_DATE as registeredDate,
+		status as status
+		from 
+			tb_final_discount_promotions
+		where discount_promotion_no = #{no}
+	</select>
+		
+		
+	<!--  PromotionOffer getPromotionOfferByPromotionNo(int no);-->
+	<select id="getPromotionOfferByPromotionNo" parameterType="int" resultType="com.hoge.vo.other.PromotionOffer">
+		select 
+		OFFER_PROMOTION_NO as no,
+		promotion_intro_content as introContent,
+		OFFER_CONTENT as content,
+		promotion_starting_date as startingDate,
+		promotion_ending_date as endingDate,
+		host_no as hostNo,
+		PROMOTION_REGISTERED_DATE as registeredDate,
+		status as status
+		from 
+			TB_FINAL_OFFER_PROMOTIONS
+		where offer_promotion_no = #{no}
+	</select>
+	
+	
+	
+	<!--  int getActOfferPromotionCount(Criteria criteria);-->
+<select id="getActOfferPromotionCount" parameterType="com.hoge.form.Criteria" resultType="int">
+		select count(*)
+		from 
+			tb_final_activities a,
+			TB_FINAL_OFFER_PROMOTIONS p
+			where 
+				a.host_no = p.host_no
+			and p.status = #{status}
+		<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '체험번호'">
+						and a.activity_no = #{value}
+					</when>
+					<when test="opt == '체험이름'">
+						and a.activity_name = #{value}
+					</when>
+				</choose>
+		</if>
+	</select>
+	
+	
+		
+		<!--  
+		List<PromotionDto> getActOfferPromotions(Criteria criteria);	
+	-->
+		<select id="getActOfferPromotions" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.PromotionDto">
+		select
+			no,
+			introContent,
+			offerContent,
+			startingDate,
+			endingDate,
+			registeredDate,
+			activityNo,
+			activityName,
+			status,
+			hostNo
+		from (select 
+			p.offer_promotion_no as no,
+			p.promotion_intro_content as introContent,
+			p.offer_content as offerContent,
+			p.promotion_starting_date as startingDate,
+			p.promotion_ending_date as endingDate,
+			p.PROMOTION_REGISTERED_DATE as registeredDate,
+			a.activity_no as activityNo,
+			a.activity_name as activityName,
+			p.status as status,
+			p.host_no as hostNo,
+			row_number() over (
+			<if test="order != null and order != ''">
+				<choose>
+					<when test="order == '최근등록일'">
+						order by p.PROMOTION_REGISTERED_DATE desc
+					</when>
+					<when test="order == '마감일'">
+					order by p.promotion_ending_date asc
+					</when>
+				</choose>
+			</if>
+			<if test="order == null or order == ''">
+				order by p.PROMOTION_REGISTERED_DATE desc
+			</if>
+			) rn
+		from 
+			tb_final_activities a,
+			TB_FINAL_OFFER_PROMOTIONS p
+		where 
+			a.host_no = p.host_no
+			and p.status = #{status}
+		<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '체험번호'">
+						and a.activity_no = #{value}
+					</when>
+					<when test="opt == '체험이름'">
+						and a.activity_name = #{value}
+					</when>
+				</choose>
+		</if>
+	)
+		where rn between #{beginIndex} and #{endIndex}
+	</select>
+	
+	
+	
+	
+	<!--  
+	int getActDiscountPromotionCount(Criteria criteria);
+	-->
+	<select id="getActDiscountPromotionCount" parameterType="com.hoge.form.Criteria" resultType="int">
+		select count(*)
+		from 
+			tb_final_activities a,
+			tb_final_discount_promotions p
+			where 
+				a.host_no = p.host_no
+			and p.status = #{status}
+		<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '숙소번호'">
+						and a.activity_no = #{value}
+					</when>
+					<when test="opt == '숙소이름'">
+						and a.activity_name = #{value}
+					</when>
+				</choose>
+		</if>
+	</select>
+	
+	
+		<!--  	List<PromotionDto> getActDiscountPromotions(Criteria criteria);-->
+		<select id="getActDiscountPromotions" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.PromotionDto">
+		select
+			no,
+			introContent,
+			weekdaysDiscountRate,
+			weekendDiscountRate,
+			peakSeasonDiscountRate,
+			startingDate,
+			endingDate,
+			registeredDate,
+			activityNo,
+			activityName,
+			status,
+			hostNo
+		from (select 
+			p.discount_promotion_no as no,
+			p.promotion_intro_content as introContent,
+			p.weekdays_discount_rate as weekdaysDiscountRate,
+			p.weekend_discount_rate as weekendDiscountRate,
+			p.peak_season_discount_rate as peakSeasonDiscountRate,
+			p.promotion_starting_date as startingDate,
+			p.promotion_ending_date as endingDate,
+			p.PROMOTION_REGISTERED_DATE as registeredDate,
+			a.activity_no as activityNo,
+			a.activity_name as activityName,
+			p.status as status,
+			p.host_no as hostNo,
+			row_number() over (
+			<if test="order != null and order != ''">
+				<choose>
+					<when test="order == '최근등록일'">
+						order by p.PROMOTION_REGISTERED_DATE desc
+					</when>
+					<when test="order == '마감일'">
+					order by p.promotion_ending_date asc
+					</when>
+				</choose>
+			</if>
+			<if test="order == null or order == ''">
+				order by p.PROMOTION_REGISTERED_DATE desc
+			</if>
+			) rn
+		from 
+			tb_final_activities a,
+			tb_final_discount_promotions p
+		where 
+			a.host_no = p.host_no
+			and p.status = #{status}
+		<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '체험번호'">
+						and a.activity_No = #{value}
+					</when>
+					<when test="opt == '체험이름'">
+						and a.activity_Name = #{value}
+					</when>
+				</choose>
+		</if>
+	)
+		where rn between #{beginIndex} and #{endIndex}
+	</select>
+	<!--  
+	List<PromotionDto> getAccDiscountPromotions(Criteria criteria);
+	
+	-->
+	<select id="getAccDiscountPromotionCount" parameterType="com.hoge.form.Criteria" resultType="int">
+		select count(*)
+		from 
+			tb_final_accommodations a,
+			tb_final_discount_promotions p
+			where 
+				a.host_no = p.host_no
+			and p.status = #{status}
+		<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '숙소번호'">
+						and a.accommo_no = #{value}
+					</when>
+					<when test="opt == '숙소이름'">
+						and a.accommo_name = #{value}
+					</when>
+				</choose>
+		</if>
+	</select>
+	
+	
+		<!--  	int getAccDiscountPromotionCount(Criteria criteria);-->
+		<select id="getAccDiscountPromotions" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.PromotionDto">
+		select
+			no,
+			introContent,
+			weekdaysDiscountRate,
+			weekendDiscountRate,
+			peakSeasonDiscountRate,
+			startingDate,
+			endingDate,
+			registeredDate,
+			accommoNo,
+			accommoName,
+			status,
+			hostNo
+		from (select 
+			p.discount_promotion_no as no,
+			p.promotion_intro_content as introContent,
+			p.weekdays_discount_rate as weekdaysDiscountRate,
+			p.weekend_discount_rate as weekendDiscountRate,
+			p.peak_season_discount_rate as peakSeasonDiscountRate,
+			p.promotion_starting_date as startingDate,
+			p.promotion_ending_date as endingDate,
+			p.PROMOTION_REGISTERED_DATE as registeredDate,
+			a.accommo_no as accommoNo,
+			a.accommo_name as accommoName,
+			p.status as status,
+			p.host_no as hostNo,
+			row_number() over (
+			<if test="order != null and order != ''">
+				<choose>
+					<when test="order == '최근등록일'">
+						order by p.PROMOTION_REGISTERED_DATE desc
+					</when>
+					<when test="order == '마감일'">
+					order by p.promotion_ending_date asc
+					</when>
+				</choose>
+			</if>
+			<if test="order == null or order == ''">
+				order by p.PROMOTION_REGISTERED_DATE desc
+			</if>
+			) rn
+		from 
+			tb_final_accommodations a,
+			tb_final_discount_promotions p
+		where 
+			a.host_no = p.host_no
+			and p.status = #{status}
+		<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '숙소번호'">
+						and a.accommo_no = #{value}
+					</when>
+					<when test="opt == '숙소이름'">
+						and a.accommo_name = #{value}
+					</when>
+				</choose>
+		</if>
+	)
+		where rn between #{beginIndex} and #{endIndex}
+	</select>
+	
+	
+	
+	<!--  int getAccOfferPromotionCount(Criteria criteria);-->
+<select id="getAccOfferPromotionCount" parameterType="com.hoge.form.Criteria" resultType="int">
+		select count(*)
+		from 
+			tb_final_accommodations a,
+			TB_FINAL_OFFER_PROMOTIONS p
+			where 
+				a.host_no = p.host_no
+			and p.status = #{status}
+		<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '숙소번호'">
+						and a.accommo_no = #{value}
+					</when>
+					<when test="opt == '숙소이름'">
+						and a.accommo_name = #{value}
+					</when>
+				</choose>
+		</if>
+	</select>
+	
+	
+		
+		<!--  
+		List<PromotionDto> getAccOfferPromotions(Criteria criteria);	
+	-->
+	<select id="getAccOfferPromotions" parameterType="com.hoge.form.Criteria" resultType="com.hoge.dto.PromotionDto">
+		select
+			no,
+			introContent,
+			offerContent,
+			startingDate,
+			endingDate,
+			registeredDate,
+			accommoNo,
+			accommoName,
+			status,
+			hostNo
+		from (select 
+			p.offer_promotion_no as no,
+			p.promotion_intro_content as introContent,
+			p.offer_content as offerContent,
+			p.promotion_starting_date as startingDate,
+			p.promotion_ending_date as endingDate,
+			p.PROMOTION_REGISTERED_DATE as registeredDate,
+			a.accommo_no as accommoNo,
+			a.accommo_name as accommoName,
+			p.status as status,
+			p.host_no as hostNo,
+			row_number() over (
+			<if test="order != null and order != ''">
+				<choose>
+					<when test="order == '최근등록일'">
+						order by p.PROMOTION_REGISTERED_DATE desc
+					</when>
+					<when test="order == '마감일'">
+					order by p.promotion_ending_date asc
+					</when>
+				</choose>
+			</if>
+			<if test="order == null or order == ''">
+				order by p.PROMOTION_REGISTERED_DATE desc
+			</if>
+			) rn
+		from 
+			tb_final_accommodations a,
+			TB_FINAL_OFFER_PROMOTIONS p
+		where 
+			a.host_no = p.host_no
+			and p.status = #{status}
+		<if test="opt != null and opt != '' and value != null and value != '' ">
+				<choose>
+					<when test="opt == '숙소번호'">
+						and a.accommo_no = #{value}
+					</when>
+					<when test="opt == '숙소이름'">
+						and a.accommo_name = #{value}
+					</when>
+				</choose>
+		</if>
+	)
+		where rn between #{beginIndex} and #{endIndex}
+	</select>
+	
+	
+	<select id="getAccDiscountPromotionsForHome" resultType="com.hoge.dto.HomeAccommoDto">
+		select 
+			p.discount_promotion_no as no,
+			p.host_no as hostNo,
+			p.promotion_intro_content as introContent,
+			p.weekdays_discount_rate as weekdaysDiscountRate,
+			p.weekend_discount_rate as weekendDiscountRate,
+			p.peak_season_discount_rate as peakSeasonDiscountRate,
+			p.promotion_starting_date as startingDate,
+			p.promotion_ending_date as endingDate,
+			a.accommo_no as accommoNo,
+			a.accommo_type as accommoType,
+			a.accommo_name as accommoName,
+            a.accommo_region_depth1 as accommoRegionDepth1,
+            a.accommo_region_depth2 as accommoRegionDepth2,
+            trunc(p.promotion_ending_date - p.promotion_starting_date) as deadlineDate
+		from 
+			tb_final_accommodations a,
+			tb_final_discount_promotions p
+		where 
+			a.host_no = p.host_no
+        and p.status = 'Y'
+        order by deadlineDate
+	</select>
+	
+	<select id="getAccOfferPromotionsForHome" resultType="com.hoge.dto.HomeAccommoDto">
+		select 
+			p.offer_promotion_no as no,
+			p.host_no as hostNo,
+			p.promotion_intro_content as introContent,
+			p.promotion_starting_date as startingDate,
+			p.promotion_ending_date as endingDate,
+			p.offer_content as offerContent,
+			a.accommo_no as accommoNo,
+			a.accommo_type as accommoType,
+			a.accommo_name as accommoName,
+            a.accommo_region_depth1 as accommoRegionDepth1,
+            a.accommo_region_depth2 as accommoRegionDepth2,
+            trunc(p.promotion_ending_date - p.promotion_starting_date) as deadlineDate
+		from 
+			tb_final_accommodations a,
+			tb_final_offer_promotions p
+		where 
+			a.host_no = p.host_no
+        and 
+       		p.status = 'Y'
+        order by 
+        	deadlineDate
+	</select>
+	
+	<!-- 유상효 체험 할인 프로모션 조회 -->
+	<select id="getActDiscountPromotion" resultType="com.hoge.dto.HomeAccommoDto">
+		select 
+			p.discount_promotion_no as no,
+			p.host_no as hostNo,
+			p.promotion_intro_content as introContent,
+			p.weekdays_discount_rate as weekdaysDiscountRate,
+			p.weekend_discount_rate as weekendDiscountRate,
+			p.peak_season_discount_rate as peakSeasonDiscountRate,
+			p.promotion_starting_date as startingDate,
+			p.promotion_ending_date as endingDate,
+			a.activity_no as actNo,
+			a.activity_name as actName,
+            a.activity_region_depth1 as accommoRegionDepth1,
+            a.activity_region_depth2 as accommoRegionDepth2,
+            h.host_main_image as mainImage,
+            trunc(p.promotion_ending_date - p.promotion_starting_date) as deadlineDate
+		from 
+			tb_final_activities a,
+			tb_final_discount_promotions p,
+			tb_final_hosts h
+		where 
+			a.host_no = p.host_no
+		and h.host_no = a.host_no
+        and p.status = 'Y'
+        order by deadlineDate
+	</select>
+	
+	<!-- 유상효 체험 증정 프로모션 조회 -->
+	<select id="getActOfferPromotion" resultType="com.hoge.dto.HomeAccommoDto">
+		select 
+			p.offer_promotion_no as no,
+			p.host_no as hostNo,
+			p.promotion_intro_content as introContent,
+			p.promotion_starting_date as startingDate,
+			p.promotion_ending_date as endingDate,
+			p.offer_content as offerContent,
+			a.activity_no as actNo,
+			a.activity_name as actName,
+            a.activity_region_depth1 as accommoRegionDepth1,
+            a.activity_region_depth2 as accommoRegionDepth2,
+            h.host_main_image as mainImage,
+            trunc(p.promotion_ending_date - p.promotion_starting_date) as deadlineDate
+		from 
+			tb_final_activities a,
+			tb_final_offer_promotions p,
+			tb_final_hosts h
+		where 
+			a.host_no = p.host_no
+		and h.host_no = a.host_no
+        and p.status = 'Y'
+        order by deadlineDate
+	</select>
+	
+	
+
+</mapper>
